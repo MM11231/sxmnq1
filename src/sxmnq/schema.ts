@@ -1,3 +1,5 @@
+import { 好感分档, 信赖分档, 星级称号 } from './分档';
+
 export const Schema = z.object({
   世界: z
     .object({
@@ -35,7 +37,7 @@ export const Schema = z.object({
         ...data,
         名声: _.clamp(data.名声, 0, 100),
         星级,
-        $称号: ['无名诊所', '略有耳闻', '小有名气', '声名远播', '声名鹊起'][星级 - 1],
+        $称号: 星级称号(星级),
       };
     })
     .prefault({}),
@@ -77,43 +79,10 @@ export const Schema = z.object({
             污染度: _.clamp(data.污染度, 0, 100),
             信赖,
             好感,
-            $信赖:
-              信赖 >= 80
-                ? '完全信赖{{user}}的能力，只愿意让{{user}}为自己进行精神疏导'
-                : 信赖 >= 60
-                  ? '比较信赖{{user}}的能力，认为{{user}}很可靠'
-                  : 信赖 >= 40
-                    ? '对{{user}}的能力比较认同，认为{{user}}的精神疏导效果不错'
-                    : 信赖 >= 20
-                      ? '对{{user}}的能力有一点信任，认为{{user}}是个正经向导'
-                      : '不清楚{{user}}的能力，不知道能不能信赖',
-            $好感:
-              好感 >= 12
-                ? '渴望和{{user}}组建家庭相伴一生，将{{user}}视为一生的伴侣，会频繁试图求婚和求爱'
-                : 好感 >= 9
-                  ? '渴望成为{{user}}的恋人，会非常明显地表达出追求，非常容易吃醋'
-                  : 好感 >= 6
-                    ? '会隐晦地试着追求{{user}}，会在对话里试探自己对{{user}}是否特殊'
-                    : 好感 >= 3
-                      ? '将{{user}}视为有点在意的人，会时不时下意识地靠近{{user}}'
-                      : '认识的向导，会用公事公办的态度对待',
+            $信赖: 信赖分档(信赖),
+            $好感: 好感分档(好感),
           };
         }),
-    )
-    .prefault({}),
-
-  治疗: z
-    .record(
-      z.string().describe('哨兵姓名'),
-      z.object({
-        线数: z.coerce.number().prefault(0),
-        已完成: z.coerce.number().prefault(0),
-        失误次数: z.coerce.number().prefault(0),
-        失误日志: z
-          .record(z.string().describe('失误序号'), z.string().describe('失误瞬间的短句'))
-          .prefault({}),
-        评级: z.string().prefault(''),
-      }),
     )
     .prefault({}),
 });

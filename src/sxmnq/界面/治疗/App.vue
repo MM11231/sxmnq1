@@ -43,7 +43,7 @@
           <div><dt>精神力</dt><dd>−{{ 结果.精神力消耗 }}</dd></div>
         </dl>
         <ul v-if="结果.失误日志.length" class="疏导__日志">
-          <li v-for="(短句, i) in 结果.失误日志" :key="i">{{ 短句 }}</li>
+          <li v-for="(失, i) in 结果.失误日志" :key="i">第 {{ 失.条 }} 条 · {{ 失.短句 }}</li>
         </ul>
       </div>
     </div>
@@ -67,6 +67,7 @@ import {
   生成丝线,
   type 治疗参数,
   type 治疗结果,
+  type 失误,
   type 丝线,
 } from './game';
 
@@ -88,7 +89,7 @@ const 丝线们 = ref<丝线[]>([]);
 const 亮着 = ref(-1);
 const 清掉的 = ref<boolean[]>([]);
 const 错线 = ref(-1);
-const 失误日志 = ref<string[]>([]);
+const 失误日志 = ref<失误[]>([]);
 const 飘字们 = ref<{ id: number; x: number; y: number; 文字: string }[]>([]);
 const 震动中 = ref(false);
 const 已结束 = ref(false);
@@ -96,6 +97,7 @@ const 结果 = ref<治疗结果 | null>(null);
 const 提示语 = ref('');
 
 const 未清数 = computed(() => 清掉的.value.filter(已清 => !已清).length);
+const 已完成 = computed(() => 线数.value - 未清数.value);
 const 当前消耗 = computed(() => 算精神力消耗(线数.value, 失误日志.value.length, props.参数.躺椅等级));
 
 let 飘字号 = 0;
@@ -126,6 +128,21 @@ function 重置() {
   提示语.value = '点那条亮着的线';
 }
 
+/**
+ * 丝线存的是归一化坐标 (0~1), 好处是窗口缩放不用重撒;
+ * 但 命中判定 / 最近丝线 吃的都是像素 (触屏容差 30 就是 30px)。
+ * 拿丝线去做判定之前, 一律先过这里 —— 忘了换算的话点哪儿都判「无」,
+ * 表面上完全看不出来, 只是点不动。
+ */
+function 转像素(线: 丝线): 丝线 {
+  return {
+    x1: 线.x1 * 宽.value,
+    y1: 线.y1 * 高.value,
+    x2: 线.x2 * 宽.value,
+    y2: 线.y2 * 高.value,
+  };
+}
+
 function 抽走样式(线: 丝线) {
   return {
     transform: `translate(${(线.x2 - 线.x1) * 宽.value * 0.3}px, ${(线.y2 - 线.y1) * 高.value * 0.3}px)`,
@@ -139,7 +156,7 @@ function 点下去(事件: PointerEvent) {
   const px = 事件.clientX - 框.left;
   const py = 事件.clientY - 框.top;
 
-  const 判定 = 命中判定(丝线们.value, 亮着.value, px, py);
+  const 判定 = 命中判定(丝线们.value.map(转像素), 亮着.value, px, py);
   if (判定 === '无') return;
 
   if (判定 === '失误') {
@@ -152,9 +169,10 @@ function 点下去(事件: PointerEvent) {
 
 function 记失误(px: number, py: number) {
   const 短句 = 抽失误短句();
-  失误日志.value = [...失误日志.value, 短句];
+  // 记下是理到第几条时手重的, 结算时要写成「第 3 条时手重了 —— 他闷哼了一声」
+  失误日志.value = [...失误日志.value, { 条: 已完成.value + 1, 短句 }];
 
-  错线.value = 最近丝线(丝线们.value, px, py);
+  错线.value = 最近丝线(丝线们.value.map(转像素), px, py);
   震动中.value = false;
   定(() => (震动中.value = true), 0);
   定(() => (震动中.value = false), 300);

@@ -2,8 +2,7 @@
  * 精神疏导小游戏的纯逻辑层。
  *
  * 这一层刻意不依赖 lodash / jQuery / 酒馆助手 —— 全部是纯函数,
- * 因此可以在浏览器里直接打开 `界面/治疗/index.html` 脱机调试,
- * 也方便在控制台里手算验证数值。
+ * 因此可以在控制台里手算验证数值, 也能被 game.test.mjs 直接跑。
  */
 
 export type 等级 = 'F' | 'E' | 'D' | 'C' | 'B' | 'A' | 'S';
@@ -28,11 +27,17 @@ export interface 治疗参数 {
   躺椅等级: number;
 }
 
+/** 一次失误。`条` 是当时正在理的那根丝线是第几条, 结算时要写成「第 3 条时手重了」 */
+export interface 失误 {
+  条: number;
+  短句: string;
+}
+
 export interface 治疗结果 {
   线数: number;
   已完成: number;
   失误次数: number;
-  失误日志: string[];
+  失误日志: 失误[];
   评级: 评级;
   精神力消耗: number;
 }
@@ -145,7 +150,7 @@ export function 点到丝线距离(px: number, py: number, 线: 丝线): number 
   return Math.hypot(px - (线.x1 + t * dx), py - (线.y1 + t * dy));
 }
 
-/** 点在哪条线附近; 没有就返回 -1. 用来决定失误时闪哪一条 */
+/** 点在哪条线附近; 没有就返回 -1. 用来决定失误时闪哪一条. 同 命中判定, 丝线必须是像素坐标 */
 export function 最近丝线(丝线们: 丝线[], px: number, py: number): number {
   let 最好 = -1;
   let 最近 = 触屏容差;
@@ -197,12 +202,12 @@ export function 抽失误短句(随机 = Math.random): string {
   return 失误短句库[Math.floor(随机() * 失误短句库.length)] ?? 失误短句库[0];
 }
 
-/** 失误日志在变量里按序号存成对象, 这里做一次转换 */
-export function 失误日志转记录(日志: string[]): Record<string, string> {
-  return Object.fromEntries(日志.map((短句, 序) => [String(序 + 1), 短句]));
+/** 失误日志在变量里按条号存成对象, 这里做一次转换 */
+export function 失误日志转记录(日志: 失误[]): Record<string, string> {
+  return Object.fromEntries(日志.map(({ 条, 短句 }) => [String(条), 短句]));
 }
 
-export function 汇总(参数: 治疗参数, 线数: number, 已完成: number, 失误日志: string[]): 治疗结果 {
+export function 汇总(参数: 治疗参数, 线数: number, 已完成: number, 失误日志: 失误[]): 治疗结果 {
   return {
     线数,
     已完成,

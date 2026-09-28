@@ -1,0 +1,9 @@
+<head>
+  <!-- head 故意是空的。
+       这个入口只在酒馆助手的 iframe 里跑, Vue / lodash / jQuery 都由酒馆助手预先挂成
+       全局变量(见 webpack.config.ts 的 externals), 这里不用也不该引 CDN。
+       要脱机在浏览器里调样式, 那是另一条路, 别往这个文件里加 script。 -->
+</head>
+<body>
+  <div id="app"></div>
+</body>

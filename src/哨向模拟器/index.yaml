@@ -1,6 +1,18 @@
 # yaml-language-server: $schema=https://testingcf.jsdelivr.net/gh/StageDog/tavern_sync/dist/schema/character.zh.json
 # 这个配置文件仅作为使用同步脚本的提示. 同步脚本并不是必须使用, 但可以让你的角色卡完全做到自动更新, 具体请参考: https://stagedog.github.io/青空莉/工具经验/实时编写角色卡、世界书或预设/
-头像: null
+#
+# ⚠ 开发期本地加载: 下面有两处 URL 指向 http://localhost:5501 (本地静态服务器,
+#   工作目录就是打包后的 dist/, 所以地址里不带 dist/ 这一段)。原因是要改一行就在
+#   酒馆里看到效果, 而 jsDelivr 有 CDN 缓存, 推送后要等很久才生效, 没法迭代。
+#   发布前把这两处换回 https://testingcf.jsdelivr.net/gh/MM11231/bata/dist/
+#     · 正则 [界面]主界面  → .../sxmnq/index.html
+#     · 脚本库 变量结构   → .../哨向模拟器/脚本/变量结构/index.js
+#
+# 前端在 src/sxmnq/ 里, 不在这张卡的目录下 —— 它是个能独立编译成单文件 HTML 的项目,
+# 卡这边只留世界书、正则和脚本(见 src/sxmnq/index.ts)。
+# 占位图, 真美术图到位后直接覆盖同目录的 头像.png 再 bundle 一次即可。
+# 不能留 null: 酒馆的角色列表只认 .png, 没有头像图会退化成"扩展名是 .png 的纯 JSON"。
+头像: 头像
 版本: ''
 作者: ''
 备注: ''
@@ -134,15 +146,36 @@
         仅格式显示: true
         仅格式提示词: false
 
-    - 正则名称: '[界面]状态栏'
-      id: b50d0bed-ff40-4a25-9ada-14feb4283324
+    # 诊疗界面每次结算会把一段元指令当成用户消息塞进聊天记录, 好让 AI 接着写剧情。
+    # 它得留在提示词里, 但玩家不该看见那一堆数字 —— 所以只在显示层抹掉。
+    - 正则名称: '[隐藏]疏导指令'
+      id: f88a4dc0-ba48-404a-83fd-b7a33bcee841
       启用: true
-      查找表达式: <StatusPlaceHolderImpl/>
+      查找表达式: /<疏导指令>[\s\S]*?<\/疏导指令>/gsi
+      替换为: ''
+      来源:
+        用户输入: true
+        AI输出: false
+      作用于:
+        仅格式显示: true
+        仅格式提示词: false
+
+    # 整条消息换成界面 —— 聊天区从此看不见文字, 剧情由界面自己从原始消息里读出来渲染
+    # (见 src/sxmnq/界面/主界面/正文.ts)。
+    #
+    # 正则没法知道哪条消息是第一楼, 所以每条都会被换成界面; 多出来的那些马上会被
+    # 「隐藏楼层」脚本删掉, 界面自己也会在挂载 Vue 之前先退出。
+    #
+    # 只作用于显示。提示词里必须是原文, 否则 AI 下一轮看不到自己写过什么。
+    - 正则名称: '[界面]主界面'
+      id: 7c1e5b90-2f4a-4d38-9e61-8a3c5f0d2b74
+      启用: true
+      查找表达式: /.+/s
       替换为: |-
         ```
         <body>
         <script>
-        $('body').load('https://testingcf.jsdelivr.net/gh/MM11231/bata/dist/哨向模拟器/界面/状态栏/index.html')
+        $('body').load('http://localhost:5501/sxmnq/index.html')
         </script>
         </body>
         ```
@@ -167,4 +200,66 @@
         启用: true
         类型: 脚本
         内容: |-
-          import 'https://testingcf.jsdelivr.net/gh/MM11231/bata/dist/哨向模拟器/脚本/变量结构/index.js';
+          import 'http://localhost:5501/哨向模拟器/脚本/变量结构/index.js';
+
+      # 脚本 iframe 里的 `$` 就是**酒馆主页面**的 jQuery(酒馆助手在 predefine 里做的
+      # `window.$ = window.parent.$`), 所以这里能直接操作主页面的 DOM。
+      - 名称: 隐藏楼层
+        id: 3f8c2a41-9b7e-4c05-a1d6-2e4f7b8c9a03
+        启用: true
+        类型: 脚本
+        内容: |-
+          $(() => {
+            // 界面只挂第一楼 —— 那一楼从头到尾都在, 不会被重建, 界面的状态才留得住。
+            // 其余楼层也会被正则塞进一个界面, 白建一遍再删掉; 界面自己会在挂载 Vue
+            // 之前先退出(见 src/sxmnq/index.ts), 这里只是兜底。
+            const 留 = 0;
+
+            function 清楼() {
+              $('#chat > .mes').each(function () {
+                if (Number($(this).attr('mesid')) !== 留) $(this).remove();
+              });
+            }
+
+            // 藏掉酒馆自己的楼层外壳, 并把界面**钉**在聊天区上。
+            // 用样式表而不是 .hide(): 内联样式压不过 !important, 而且这样一次就够。
+            //
+            // 只把内边距清零是不够的 —— 试过, 界面会被推出屏幕: 顶栏跑到视口外面, 底部按钮
+            // 掉到折叠线以下。两个原因叠在一起:
+            //   1. 聊天区自己会滚到底(scrollTop = scrollHeight - clientHeight), 界面被滚上去;
+            //   2. 楼层里还留着酒馆自己的内边距, 界面不是从聊天区顶部开始的。
+            // 所以这里整条链一路钉死: 聊天区当定位基准, 楼层一路到 iframe 全部铺满它。
+            // 谁的内边距都插不进来, 滚也滚不动。
+            function 接管外观() {
+              $('#th-takeover').remove();
+              const 钉满 =
+                'position: absolute !important; inset: 0 !important; margin: 0 !important;' +
+                ' padding: 0 !important; max-width: none !important;';
+              $('<style id="th-takeover">')
+                .text(
+                  '#chat { position: relative !important; padding: 0 !important; margin: 0 !important;' +
+                    ' overflow: hidden !important; }' +
+                    `#chat > .mes { ${钉满} height: auto !important; border: none !important;` +
+                    ' background: none !important; box-shadow: none !important; }' +
+                    '#chat > .mes .mesAvatarWrapper, #chat > .mes .ch_name, #chat > .mes .mes_buttons,' +
+                    ' #chat > .mes .mes_timer, #chat > .mes .mes_edit_buttons, #chat > .mes .swipe_left,' +
+                    ' #chat > .mes .swipe_right, #chat > .mes .swipeRightBlock, #chat > .mes .swipeLeftBlock' +
+                    ' { display: none !important; }' +
+                    // TH-render 是酒馆助手包代码块用的壳, 界面 iframe 就生在它里面。
+                    `#chat > .mes .mes_block, #chat > .mes .mes_text, #chat > .mes .TH-render { ${钉满} }` +
+                    '#chat > .mes iframe { position: absolute !important; inset: 0 !important;' +
+                    ' width: 100% !important; height: 100% !important; }',
+                )
+                .appendTo('head');
+            }
+
+            接管外观();
+            清楼();
+
+            // 事件和轮询都要: 只靠事件会漏掉流式生成中途冒出来的楼层, 只靠轮询又会让
+            // 旧楼层多活半秒、闪一下。
+            ['MESSAGE_RECEIVED', 'MESSAGE_SENT', 'MESSAGE_SWIPED', 'MESSAGE_UPDATED', 'MESSAGE_DELETED'].forEach(
+              名 => eventOn(tavern_events[名], 清楼),
+            );
+            setInterval(清楼, 500);
+          });

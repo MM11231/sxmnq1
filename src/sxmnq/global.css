@@ -1,0 +1,30 @@
+/* 页面级样式: 让界面铺满 iframe。
+ *
+ * 界面的**位置和大小**由卡里的样式表钉死(见 src/哨向模拟器/index.yaml 的「隐藏楼层」
+ * 脚本), 这里只负责让页面自身吃满 iframe —— 两件事, 别混。
+ *
+ * 刻意不用 vh: 在 iframe 里 vh 指的是 iframe 自身的高度, 而 iframe 的高度又要靠内容来量,
+ * 两边互相等, 会绕成一个死结 —— 表现是界面高度为 0 或忽大忽小。
+ *
+ * overflow: hidden 是必须的。酒馆助手的 adjust_iframe_height 会拿 body.scrollHeight 去设
+ * iframe 高度, 我们让 body 高度固定, 它量到的就永远是我们已经定好的那个值, 于是不会跟我们
+ * 抢着改高度。 */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+}
+
+#app {
+  height: 100%;
+}
+
+/* 手机上加一点触摸余量 */
+@media (max-width: 480px) {
+  button {
+    min-height: 44px;
+  }
+}
