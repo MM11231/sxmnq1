@@ -79,7 +79,7 @@
 // 而且 ts-loader 配的是 transpileOnly, 类型不对构建照样过。
 //
 // import 名必须是 ASCII —— Vue 模板编译器认不出非 ASCII 的标签名, 写成 `<身份卡 />`
-// 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作(见 状态栏/App.vue 同一处注释)。
+// 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作(见 主界面/App.vue 同一处注释)。
 import { useDataStore } from '../共用/数据';
 import { use合窗 } from '../共用/合窗';
 import { use顶栏高 } from '../共用/量顶栏';

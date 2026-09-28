@@ -1,29 +1,10 @@
 <template>
-  <div class="诊所">
-    <header class="诊所__招牌">
-      <span class="诊所__名">{{ 数据.诊所.名称 || '未命名的诊所' }}</span>
-      <span class="诊所__星">{{ 数据.诊所.等级 }} 级 · {{ 数据.诊所.$称号 }}</span>
-    </header>
+  <div class="申请块 界卡">
+    <h4 class="申请块__日">{{ 数据.世界.日期 }} · {{ 数据.世界.时段 }}</h4>
 
-    <div class="诊所__行">
-      <div class="诊所__槽"><i class="is-名声" :style="{ width: `${数据.诊所.名声}%` }" /></div>
-      <span class="诊所__值">名声 {{ 数据.诊所.名声 }}</span>
-    </div>
-
-    <div class="诊所__行">
-      <div class="诊所__槽"><i class="is-精神" :style="{ width: `${精神比}%` }" /></div>
-      <span class="诊所__值">精神力 {{ 数据.主角.精神力 }}/{{ 数据.主角.精神力上限 }}</span>
-    </div>
-
-    <div class="诊所__条">
-      <span>{{ 数据.主角.姓名 || '向导' }}</span>
-      <span class="诊所__钱">{{ 数据.主角.金钱 }} 金</span>
-      <span class="诊所__设">床位 {{ 在诊数 }}/{{ 床位 }}</span>
-    </div>
-
-    <h4 class="诊所__标">{{ 数据.世界.日期 }} · {{ 数据.世界.时段 }}</h4>
-
-    <p v-if="!待接.length" class="诊所__空">今天没有新的申请。{{ 已接.length ? '' : '去休息，或者等明天。' }}</p>
+    <p v-if="!待接.length" class="申请块__空">
+      今天没有新的申请。{{ 已接.length ? '' : '去休息，或者等明天。' }}
+    </p>
 
     <article v-for="申 in 待接" :key="申.姓名" class="申请">
       <div class="申请__首">
@@ -41,30 +22,34 @@
       </div>
     </article>
 
-    <div v-if="数据.今日.待登记.length" class="诊所__待登">
-      <p class="诊所__待登标">桌上还压着 {{ 数据.今日.待登记.length }} 张没登记的申请单</p>
+    <div v-if="数据.今日.待登记.length" class="申请块__待登">
+      <p class="申请块__待登标">桌上还压着 {{ 数据.今日.待登记.length }} 张没登记的申请单</p>
       <!-- `_` 是必须的: 写成 (条, i) 会让 `条` 成为未使用的变量, eslint 报错。这里只要序号 -->
-      <span v-for="(_, i) in 数据.今日.待登记" :key="i" class="诊所__徽">
+      <span v-for="(_, i) in 数据.今日.待登记" :key="i" class="申请块__徽">
         未登记 · {{ String(i + 1).padStart(2, '0') }}
       </span>
     </div>
 
-    <div v-if="已接.length" class="诊所__已接">
-      <span class="诊所__已接标">今日已接</span>
-      <span v-for="名 in 已接" :key="名" class="诊所__徽">{{ 名 }}</span>
+    <div v-if="已接.length" class="申请块__已接">
+      <span class="申请块__已接标">今日已接</span>
+      <span v-for="名 in 已接" :key="名" class="申请块__徽">{{ 名 }}</span>
     </div>
 
-    <div v-if="诊疗" class="诊所__罩">
-      <TreatmentPanel :哨兵姓名="诊疗.姓名" :参数="诊疗.参数" @结算="结束" @取消="诊疗 = null" />
-    </div>
+    <!-- 治疗浮层挂在三个块**之外**(Teleport 到 body)。
+         它原来是块内的一个 position:fixed 元素 —— 拆成三块之后,
+         治疗进行中点一下别的块就能让浮层消失, 而治疗状态还在 (spec §9.1.1)。 -->
+    <Teleport to="body">
+      <div v-if="诊疗" class="申请块__罩">
+        <TreatmentPanel :哨兵姓名="诊疗.姓名" :参数="诊疗.参数" @结算="结束" @取消="诊疗 = null" />
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-// 这个 import 名字必须是 ASCII。Vue 的模板编译器认不出非 ASCII 的标签名, 写成
-// `<治疗面板 />` 时它会被当成纯文本渲染, 上面的 @结算 绑定跟着一起丢, 于是 `结束`
-// 成了没人用的函数, 被 tree-shaking 删掉, 连带整个 结算.ts 都不进包 —— 而且只有
-// 生产构建才会这样, dev 模式不做 tree-shaking, 一点征兆都没有。
+// import 名必须是 ASCII。写成 `<治疗面板 />` 会被当纯文本渲染、绑定全丢,
+// 于是 `结束` 成了没人用的函数, 被 tree-shaking 删掉, 连带整个 结算.ts 都不进包
+// —— 而且只有生产构建才会这样, dev 模式不做 tree-shaking, 一点征兆都没有。
 import TreatmentPanel from '../治疗/App.vue';
 import {
   算单次清除量,
@@ -74,17 +59,10 @@ import {
   type 治疗参数,
   type 治疗结果,
 } from '../治疗/game';
+import { 应用结算, 构建元指令, 能接诊吗, type 结算上下文 } from '../状态栏/结算';
 import { 算床位 } from '../../家园/家具';
-import { 应用结算, 构建元指令, 在诊人数, 能接诊吗, type 结算上下文 } from './结算';
-// 用 共用/数据 那一份(读最新一楼), **不要**在本地另起一个 store。
-//
-// 这里原来写的是 `./store`, 它把 message_id 钉成 getCurrentMessageId() —— 而界面只在
-// 第 0 楼挂载(见 index.yaml 里 [界面]主界面 那条正则的注释), 所以那个值恒为 0。
-// 后果是: 状态栏显示的是**开局冻结状态**, 玩家点接诊/结算全写进第 0 楼的死 store,
-// 而同一屏顶部的「待接数」读的是最新楼 —— 两个数字对不上。
-//
-// 预览里看不出来: 酒馆桩的 getVariables() 无视传进去的 variable_option, 永远返回
-// 同一个假变量, 于是两个 store 看起来共享数据。只有真酒馆才发作。
+// 用 共用/数据 那一份(读最新一楼), **不要**在本地另起一个 store —— 界面只在第 0 楼
+// 挂载, 钉死楼层的 store 会读到开局冻结状态, 与同一屏顶部的角标对不上。详见原注释。
 import { useDataStore } from '../共用/数据';
 import { 盯住日期 } from '../共用/掷骰接线';
 
@@ -103,13 +81,7 @@ interface 申请项 {
 const store = useDataStore();
 const 数据 = computed(() => store.data);
 
-const 精神比 = computed(
-  () => (数据.value.主角.精神力 / Math.max(1, 数据.value.主角.精神力上限)) * 100,
-);
-
-const 在诊数 = computed(() => 在诊人数(数据.value.哨兵));
-
-/** 床位不再是变量, 是「摆出来的床有几张」(spec §7.1) */
+/** 床位是派生值: 摆出来的床有几张 (spec §7.1) */
 const 床位 = computed(() => 算床位(数据.value.诊所.家具));
 
 /** 床位满时按钮置灰 + 一句「没床了」(spec §5.2)。已经在诊的那个人不受限 —— 那是复诊 */
@@ -118,8 +90,11 @@ function 床位够吗(姓名: string): boolean {
 }
 
 /**
- * 掷骰的唯一入口。它常驻挂载(在「诊所与申请」折叠区里用 v-show, 不销毁),
+ * 掷骰的唯一入口。它常驻挂载(在「申请」折叠区里用 v-show, 不销毁),
  * 所以放在这里就够 —— 不需要在 主界面/App.vue 那个 500ms 轮询里再做一次。
+ *
+ * ⚠ **这一块永远不能用 `v-if`。** 用了就是把这条 watch 一起销毁:
+ * 掷骰和申请列表会静默死掉, 不报错, 只是永远不再出现新申请 (spec §9.1)。
  */
 盯住日期({
   今日: () => 数据.value.今日,
@@ -133,6 +108,10 @@ function 算预计线数(姓名: string, 等级: 等级, 污染度: number) {
     哨兵等级: 等级,
     主角等级: 数据.value.诊所.等级,
     信赖: 数据.value.哨兵[姓名]?.信赖 ?? 0,
+    // 治疗参数 里 气氛 是必填(它取代了原来的 减耗)。算线数 其实不读它,
+    // 但少写一个必填字段 `ts-loader` 是 transpileOnly, **不会报错** ——
+    // 所以别指望构建替你发现, 老老实实按签名给全。
+    气氛: 数据.value.诊所.气氛,
     第几次: 1,
     预计次数: 1,
   });
@@ -176,6 +155,7 @@ function 接诊(申: 申请项) {
       哨兵等级: 申.等级,
       主角等级: 等级,
       信赖: 申.信赖,
+      气氛: 数据.value.诊所.气氛, // 必填 —— 同上, 少写不会报错
       第几次: (数据.value.哨兵[申.姓名]?.已治疗 ?? 0) + 1,
       预计次数: 算预计次数(申.污染度, 算单次清除量(等级)),
     },
@@ -217,7 +197,8 @@ async function 结束(果: 治疗结果) {
       名声: 数据.value.诊所.名声,
       床位: 床位.value,
     },
-    气氛: 0, // 尚未接上 —— 诊所.气氛 要等 schema 那一步才有; 现在恒为 0
+    // ★ 真的接上了 —— 装修好的诊所, 结算文案会不一样 (spec §7.3)
+    气氛: 数据.value.诊所.气氛,
     患者: {
       姓名: 患.姓名,
       等级: 患.参数.哨兵等级,
@@ -248,98 +229,9 @@ async function 结束(果: 治疗结果) {
 </script>
 
 <style lang="scss" scoped>
-.诊所 {
-  margin: 10px 0;
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: linear-gradient(168deg, #141a23 0%, #0d1117 100%);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  color: #d8dee6;
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
-  -webkit-tap-highlight-color: transparent;
-
-  &__招牌 {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 9px;
-  }
-
-  &__名 {
-    color: #eef3f8;
-    font-weight: 600;
-    font-size: 1.06em;
-    letter-spacing: 0.03em;
-  }
-
-  &__星 {
-    color: #7fe3ff;
-    font-size: 0.82em;
-    white-space: nowrap;
-  }
-
-  &__行 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 5px;
-  }
-
-  &__槽 {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: rgba(255, 255, 255, 0.07);
-    overflow: hidden;
-
-    i {
-      display: block;
-      height: 100%;
-      border-radius: 3px;
-      transition: width 0.45s ease;
-
-      &.is-名声 {
-        background: linear-gradient(90deg, #4a7fa5, #7fe3ff);
-      }
-
-      &.is-精神 {
-        background: linear-gradient(90deg, #6b5fa8, #b39ddb);
-      }
-    }
-  }
-
-  &__值 {
-    color: #7d8896;
-    font-size: 0.8em;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  &__条 {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px 12px;
-    margin: 8px 0 2px;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    color: #9aa5b1;
-    font-size: 0.85em;
-  }
-
-  &__钱 {
-    color: #ffd76e;
-  }
-
-  &__设 {
-    color: #6f7a87;
-    margin-left: auto;
-  }
-
-  &__标 {
-    margin: 12px 0 7px;
+.申请块 {
+  &__日 {
+    margin: 0 0 7px;
     color: #6f7a87;
     font-size: 0.8em;
     font-weight: 500;
@@ -377,7 +269,7 @@ async function 结束(果: 治疗结果) {
   }
 
   /* 掷完但 AI 还没起名的那些。虚框 + 压暗, 一眼看出「还不能接」——
-     它们不在 申请列表 里, 所以点不动, 是这局的待办而不是这一屏的病人 (spec §8.2) */
+     它们不在 申请列表 里, 所以点不动, 是这一局的待办而不是这一屏的病人 (spec §8.2) */
   &__待登 {
     margin: 8px 0;
     padding: 8px;
@@ -391,6 +283,7 @@ async function 结束(果: 治疗结果) {
     font-size: 12px;
   }
 
+  /* 治疗浮层。Teleport 到 body, 所以 fixed 是相对视口的 —— 盖住整个界面 */
   &__罩 {
     position: fixed;
     inset: 0;
@@ -505,11 +398,6 @@ async function 结束(果: 治疗结果) {
 }
 
 @media (max-width: 480px) {
-  .诊所 {
-    padding: 11px 12px;
-    font-size: 12.5px;
-  }
-
   .申请__钮 {
     min-height: 34px;
     padding: 0 15px;

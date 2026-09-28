@@ -6,7 +6,7 @@
 
 <script setup lang="ts">
 // import 名必须是 ASCII: Vue 的模板编译器认不出非 ASCII 的标签名, 写成 `<标题 />`
-// 会被当纯文本渲染, 绑定全丢, 而且只有生产构建才发作。详见 状态栏/App.vue 里的同一处注释。
+// 会被当纯文本渲染, 绑定全丢, 而且只有生产构建才发作。详见 主界面/App.vue 里的同一处注释。
 import { useDataStore } from '../共用/数据';
 import CreatorScreen from '../创建/App.vue';
 import MainScreen from '../主界面/App.vue';

@@ -87,7 +87,7 @@
 
 <script setup lang="ts">
 // import 名必须是 ASCII。Vue 模板编译器认不出非 ASCII 的标签名, 写成 `<九宫格 />`
-// 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作。同 状态栏/App.vue 那条注释。
+// 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作。同 主界面/App.vue 那条注释。
 import Grid from './九宫格.vue';
 import { useDataStore } from '../共用/数据';
 import { 二层格子, 三层格子, type 宫格 } from '../../家园/布局';

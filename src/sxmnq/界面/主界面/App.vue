@@ -20,12 +20,11 @@
 
     <section class="界__态">
       <div class="界__签">
-        <button
-          class="界__态标"
-          :class="{ 'is-开': 展块 === '诊所与申请' }"
-          @click="切块('诊所与申请')"
-        >
-          <span>诊所与申请</span>
+        <button class="界__态标" :class="{ 'is-开': 展块 === '诊所' }" @click="切块('诊所')">
+          <span>诊所</span>
+        </button>
+        <button class="界__态标" :class="{ 'is-开': 展块 === '申请' }" @click="切块('申请')">
+          <span>申请</span>
           <span v-if="待接数" class="界__角标">{{ 待接数 }}</span>
         </button>
         <button class="界__态标" :class="{ 'is-开': 展块 === '家园' }" @click="切块('家园')">
@@ -34,10 +33,10 @@
         </button>
       </div>
 
-      <!-- 两个块**都常驻挂载**, 只切 v-show —— 见 spec §9.1:
-           `盯住日期` 挂在 StatusPanel 里, 改用 v-if 会把那条 watch 一起销毁,
-           掷骰与申请列表会**静默死掉**(不报错, 只是永远不再出现新申请)。 -->
-      <div v-show="展块 === '诊所与申请'" class="界__态体"><StatusPanel /></div>
+      <!-- 三个块**都常驻挂载**, 只切 v-show —— 见 spec §9.1。
+           「盯住日期」挂在 ApplyPanel 里, 改成 v-if 会让它静默死掉。 -->
+      <div v-show="展块 === '诊所'" class="界__态体"><ClinicPanel /></div>
+      <div v-show="展块 === '申请'" class="界__态体"><ApplyPanel /></div>
       <div v-show="展块 === '家园'" class="界__态体"><HomePanel @门="展块 = null" /></div>
     </section>
 
@@ -66,9 +65,11 @@
 </template>
 
 <script setup lang="ts">
-// import 名必须是 ASCII: Vue 的模板编译器认不出非 ASCII 的标签名, 写成 `<状态栏 />`
-// 会被当纯文本渲染, 绑定全丢, 生产构建时才发作。详见 状态栏/App.vue 里的同一处注释。
-import StatusPanel from '../状态栏/App.vue';
+// import 名必须是 ASCII。Vue 模板编译器认不出非 ASCII 的标签名, 写成 `<治疗面板 />`
+// 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作、构建照报成功。
+// ★ 这条注释就是全仓的出处: 入口/App.vue、创建/App.vue、家园/App.vue 都指向这里。
+import ClinicPanel from '../诊所/App.vue';
+import ApplyPanel from '../申请/App.vue';
 import HomePanel from '../家园/App.vue';
 import { 算仓库 } from '../../家园/家具';
 import { useDataStore } from '../共用/数据';
@@ -81,10 +82,10 @@ const 数据 = computed(() => store.data);
 const 原文 = ref('');
 const 生成中 = ref(false);
 /** 现在开着哪一块。null = 全折叠。互斥就是「只有一个值」这件事本身 (spec §9) */
-const 展块 = ref<'诊所与申请' | '家园' | null>(null);
+const 展块 = ref<'诊所' | '申请' | '家园' | null>(null);
 
 /** 点开着的那个 = 收起它; 点别的 = 换过去 */
-function 切块(块: '诊所与申请' | '家园') {
+function 切块(块: '诊所' | '申请' | '家园') {
   展块.value = 展块.value === 块 ? null : 块;
 }
 const 看历史 = ref(false);
