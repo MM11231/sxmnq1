@@ -1,5 +1,232 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
-  "properties": {}
+  "properties": {
+    "世界": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "日期": {
+          "default": "",
+          "type": "string"
+        },
+        "时段": {
+          "default": "",
+          "type": "string"
+        },
+        "地点": {
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
+    "主角": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "姓名": {
+          "default": "",
+          "type": "string"
+        },
+        "执业等级": {
+          "default": "F",
+          "type": "string",
+          "enum": [
+            "F",
+            "E",
+            "D",
+            "C",
+            "B",
+            "A",
+            "S"
+          ]
+        },
+        "精神力": {
+          "default": 0,
+          "type": "number"
+        },
+        "精神力上限": {
+          "default": 100,
+          "type": "number"
+        },
+        "金钱": {
+          "default": 0,
+          "type": "number"
+        }
+      }
+    },
+    "诊所": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "名称": {
+          "default": "",
+          "type": "string"
+        },
+        "名声": {
+          "default": 0,
+          "type": "number"
+        },
+        "星级": {
+          "default": 1,
+          "type": "number"
+        },
+        "诊室等级": {
+          "default": 1,
+          "type": "number"
+        },
+        "躺椅等级": {
+          "default": 1,
+          "type": "number"
+        }
+      }
+    },
+    "今日": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "申请列表": {
+          "default": {},
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "description": "哨兵姓名"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "等级": {
+                "type": "string",
+                "enum": [
+                  "F",
+                  "E",
+                  "D",
+                  "C",
+                  "B",
+                  "A",
+                  "S"
+                ]
+              },
+              "污染度": {
+                "type": "number"
+              },
+              "战损来源": {
+                "type": "string"
+              },
+              "诊金": {
+                "type": "number"
+              },
+              "状态": {
+                "type": "string",
+                "enum": [
+                  "待接",
+                  "已接",
+                  "已婉拒"
+                ]
+              }
+            },
+            "required": [
+              "等级",
+              "污染度",
+              "战损来源",
+              "诊金",
+              "状态"
+            ]
+          }
+        }
+      }
+    },
+    "哨兵": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "description": "哨兵姓名"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "等级": {
+            "default": "D",
+            "type": "string",
+            "enum": [
+              "F",
+              "E",
+              "D",
+              "C",
+              "B",
+              "A",
+              "S"
+            ]
+          },
+          "污染度": {
+            "default": 0,
+            "type": "number"
+          },
+          "战损来源": {
+            "default": "",
+            "type": "string"
+          },
+          "信赖": {
+            "default": 0,
+            "type": "number"
+          },
+          "好感": {
+            "default": 0,
+            "type": "number"
+          },
+          "状态": {
+            "default": "在诊",
+            "type": "string",
+            "enum": [
+              "在诊",
+              "已出院",
+              "已收编"
+            ]
+          }
+        }
+      }
+    },
+    "治疗": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "description": "哨兵姓名"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "线数": {
+            "default": 0,
+            "type": "number"
+          },
+          "已完成": {
+            "default": 0,
+            "type": "number"
+          },
+          "失误次数": {
+            "default": 0,
+            "type": "number"
+          },
+          "失误日志": {
+            "default": {},
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "description": "失误序号"
+            },
+            "additionalProperties": {
+              "type": "string",
+              "description": "失误瞬间的短句"
+            }
+          },
+          "评级": {
+            "default": "",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }
