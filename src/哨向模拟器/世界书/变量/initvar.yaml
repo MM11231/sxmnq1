@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=../../schema.json
+# yaml-language-server: $schema=../../../sxmnq/schema.json
 # 在编写 initvar 之前, 请先保证终端有在运行 `pnpm watch`, 这会生成 schema.json 用于检验 initvar 是否有效
 世界:
   日期: 霜降月第一日
