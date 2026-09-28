@@ -26,13 +26,15 @@
 <script setup lang="ts">
 // 预览壳。只在这个入口里存在 —— 卡里跑的是 界面/入口/App.vue 那个路由器。
 //
-// 为什么不让这个壳直接用路由器: 路由器只从标题页出发, 要去创建页得靠 getLastMessageId()
-// 返回 0。而预览想看的是**三个页面各自长什么样**, 得能一步点过去。所以这里直接挂三页,
-// 「开始游戏」的去向自己算 —— 规则和 界面/入口/App.vue 里那三行一致, 改了那边记得改这里。
+// 为什么不让这个壳直接用路由器: 路由器只从标题页出发, 要去创建页得先确保变量里
+// `主角.已创建` 是 false。而预览想看的是**三个页面各自长什么样**, 得能一步点过去。
+// 所以这里直接挂三页, 「开始游戏」的去向自己算 —— 规则和 界面/入口/App.vue 一致,
+// 改了那边记得改这里。
 //
 // 注意 import 名必须是 ASCII: Vue 模板编译器认不出非 ASCII 的标签名, 写成 `<标题页 />`
 // 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作。
 import { 末楼 } from './酒馆桩';
+import { useDataStore } from '../sxmnq/界面/共用/数据';
 import CreatorScreen from '../sxmnq/界面/创建/App.vue';
 import MainScreen from '../sxmnq/界面/主界面/App.vue';
 import TitleScreen from '../sxmnq/界面/标题/App.vue';
@@ -40,11 +42,12 @@ import TitleScreen from '../sxmnq/界面/标题/App.vue';
 const 页表 = ['标题', '创建', '主界面'] as const;
 const 页 = ref<(typeof 页表)[number]>('标题');
 
+/** 和 界面/入口/App.vue 的「开始游戏」同一套判据: 走过创建才进主界面。 */
 function 开始() {
-  页.value = 末楼.value === 0 ? '创建' : '主界面';
+  页.value = useDataStore().data.主角.已创建 ? '主界面' : '创建';
 }
 
-/** 末楼 0 = 这局只有开场白, 点「开始游戏」该去创建角色; 3 = 已经在局中, 直接进主界面。 */
+/** 末楼 0 = 这局只有开场白, 3 = 后面还有几条。只管「存在几楼」, 不再管路由去向。 */
 function 换层() {
   末楼.value = 末楼.value === 0 ? 3 : 0;
 }

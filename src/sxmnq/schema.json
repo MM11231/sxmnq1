@@ -43,6 +43,10 @@
             "常规"
           ]
         },
+        "已创建": {
+          "default": false,
+          "type": "boolean"
+        },
         "执业等级": {
           "default": "F",
           "type": "string",
