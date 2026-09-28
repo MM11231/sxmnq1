@@ -8,32 +8,7 @@
 //
 // 所以每动一次 schema, 就拿真实的预览假数据过一遍 safeParse。
 //
-import module from 'node:module';
-import path from 'node:path';
-
-// 让 Node 认得不带扩展名的相对导入。
-// schema.ts 里写的是 `import { 等级称号 } from './分档'` —— webpack 与 tsc 都会自己补上
-// .ts, Node 这个原生 ESM 解析器不会, 直接 ERR_MODULE_NOT_FOUND。
-// 与 dump_schema.ts 用的是同一套钩子, 必须在下面 import() 之前注册。
-module.registerHooks({
-  resolve(说明符, 上下文, 下一个) {
-    if (说明符.startsWith('.') && !path.extname(说明符)) {
-      for (const 后缀 of ['.ts', '/index.ts']) {
-        try {
-          return 下一个(说明符 + 后缀, 上下文);
-        } catch {
-          // 这个后缀不存在, 试下一个
-        }
-      }
-    }
-    return 下一个(说明符, 上下文);
-  },
-});
-
-// schema.ts 用的是裸 `z` / `_`(webpack 靠 auto-import 注入, 预览靠酒馆桩挂全局),
-// node 里两个都没有, 得先补上再 import —— 顺序不能反。
-globalThis.z = (await import('zod')).z;
-globalThis._ = (await import('lodash')).default;
+import './测试钩子.mjs';
 
 const { Schema } = await import(new URL('./schema.ts', import.meta.url).href);
 const { 假变量 } = await import(new URL('../预览/假数据.ts', import.meta.url).href);

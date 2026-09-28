@@ -1,26 +1,6 @@
 /* eslint-disable */
 // 直接跑: node src/sxmnq/界面/治疗/game.test.mjs
-import module from 'node:module';
-import path from 'node:path';
-
-// 让 Node 认得不带扩展名的相对导入。
-// game.ts 里写的是 `import { 等级值 } from '../../等级'` —— webpack 与 tsc 都会自己补上
-// .ts, Node 这个原生 ESM 解析器不会, 直接 ERR_MODULE_NOT_FOUND。
-// 与 dump_schema.ts 用的是同一套钩子, 必须在下面 import() 之前注册。
-module.registerHooks({
-  resolve(说明符, 上下文, 下一个) {
-    if (说明符.startsWith('.') && !path.extname(说明符)) {
-      for (const 后缀 of ['.ts', '/index.ts']) {
-        try {
-          return 下一个(说明符 + 后缀, 上下文);
-        } catch {
-          // 这个后缀不存在, 试下一个
-        }
-      }
-    }
-    return 下一个(说明符, 上下文);
-  },
-});
+import '../../测试钩子.mjs';
 
 const G = await import(new URL('./game.ts', import.meta.url).href);
 
