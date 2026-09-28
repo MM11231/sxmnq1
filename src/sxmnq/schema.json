@@ -84,9 +84,34 @@
           "default": 0,
           "type": "number"
         },
-        "床位": {
-          "default": 1,
-          "type": "number"
+        "家具": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "名称": {
+                "default": "",
+                "type": "string"
+              },
+              "类型": {
+                "default": "床",
+                "type": "string",
+                "enum": [
+                  "床",
+                  "装饰"
+                ]
+              },
+              "氛围": {
+                "default": 0,
+                "type": "number"
+              },
+              "在哪": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },
