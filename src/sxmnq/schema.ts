@@ -12,6 +12,14 @@ export const Schema = z.object({
   主角: z
     .object({
       姓名: z.string().prefault(''),
+
+      // 开局在创建页选的两样, 之后不再变。写进变量而不是只存在前端里, 是因为
+      // 「变量列表」那条世界书会把整份 stat_data 注入提示词 —— 选了什么是靠这个
+      // 让 AI 知道的, 不是靠界面告诉它。
+      身份: z.enum(['向导', '哨兵']).prefault('向导'),
+      // 现在是单值。以后开第二条线就往这个数组里加一个字符串, 别处不用动。
+      路线: z.enum(['常规']).prefault('常规'),
+
       执业等级: z.enum(['F', 'E', 'D', 'C', 'B', 'A', 'S']).prefault('F'),
       精神力: z.coerce.number().prefault(0),
       精神力上限: z.coerce.number().prefault(100),

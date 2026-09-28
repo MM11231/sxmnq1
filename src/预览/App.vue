@@ -2,7 +2,7 @@
   <div class="览">
     <div class="览__台">
       <MainScreen v-if="页 === '主界面'" />
-      <CreatorScreen v-else-if="页 === '创建'" />
+      <CreatorScreen v-else-if="页 === '创建'" @完成="页 = '主界面'" />
       <TitleScreen v-else @开始="开始" />
     </div>
 

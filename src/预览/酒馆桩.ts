@@ -78,23 +78,41 @@ export const 末楼 = ref(3);
 /** 假聊天。`getChatMessages` 给的是原始文本, 抠正文是界面自己的事(见 界面/主界面/正文.ts)。 */
 const 聊天 = 假聊天.map(条 => ({ ...条 }));
 
+/**
+ * 此刻**存在**的楼层。
+ *
+ * 真酒馆里末楼 0 表示这局只有开场白一楼, 后面那三条还不存在。假聊天却一直摆着四条 ——
+ * 不缩的话, 「末楼 0」这个状态下预览看到的是四条消息, 而真环境里只有一条。而创建页
+ * 恰恰只在末楼 0 时出现, 开局那一下要验的就是这个落差, 不能糊过去。
+ *
+ * `slice` 不改数组元素本身(对象还是原来那些), 所以下面就地改 `有[...].message` 改的
+ * 仍是 聊天 里的那一条。
+ */
+function 现有() {
+  return 聊天.slice(0, 末楼.value + 1);
+}
+
 全局.getChatMessages = (范围: string | number) => {
+  const 有 = 现有();
   if (typeof 范围 === 'number') {
     // 负数是从末尾数的深度: -1 就是最新一楼。
-    const 位 = 范围 < 0 ? 聊天.length + 范围 : 范围;
-    return 聊天[位] ? [聊天[位]] : [];
+    const 位 = 范围 < 0 ? 有.length + 范围 : 范围;
+    return 有[位] ? [有[位]] : [];
   }
   const 匹 = 范围.match(/^(-?\d+)\s*-\s*(.+)$/);
-  if (!匹) return 聊天;
+  if (!匹) return 有;
   // `'0-{{last}}'` 这种写法里末尾是个宏, 预览里没法展开, 直接当「最后一条」。
-  const 止 = 匹[2].includes('{{last') ? 聊天.length - 1 : Number(匹[2]);
-  return 聊天.slice(Number(匹[1]), 止 + 1);
+  const 止 = 匹[2].includes('{{last') ? 有.length - 1 : Number(匹[2]);
+  return 有.slice(Number(匹[1]), 止 + 1);
 };
 
 全局.createChatMessages = async (条: { role: string; message: string }[]) => {
   for (const 一 of 条) {
     聊天.push({ message_id: 聊天.length, role: 一.role, message: 一.message });
   }
+  // 新楼层一进来, 「末楼」就得跟着走 —— 否则刚发的消息会被上面的 slice 挡在外面,
+  // 表现成"指令发出去了但界面没反应"。
+  末楼.value = 聊天.length - 1;
 };
 
 // ---------------------------------------------------------------- 事件
@@ -153,7 +171,8 @@ let 稿次 = 0;
 全局.triggerSlash = async () => {
   发事件(全局.tavern_events.GENERATION_STARTED);
   await new Promise(完 => setTimeout(完, 450));
-  聊天[聊天.length - 1].message = 备稿[稿次++ % 备稿.length];
+  const 有 = 现有();
+  有[有.length - 1].message = 备稿[稿次++ % 备稿.length];
   发事件(全局.tavern_events.GENERATION_ENDED);
   return '';
 };

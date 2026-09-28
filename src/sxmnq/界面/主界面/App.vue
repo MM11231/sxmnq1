@@ -57,9 +57,9 @@
 // import 名必须是 ASCII: Vue 的模板编译器认不出非 ASCII 的标签名, 写成 `<状态栏 />`
 // 会被当纯文本渲染, 绑定全丢, 生产构建时才发作。详见 状态栏/App.vue 里的同一处注释。
 import StatusPanel from '../状态栏/App.vue';
+import { useDataStore } from '../共用/数据';
 import { use顶栏高 } from '../共用/量顶栏';
 import { 取正文, 读最新原文 } from './正文';
-import { useDataStore } from './store';
 
 const store = useDataStore();
 const 数据 = computed(() => store.data);

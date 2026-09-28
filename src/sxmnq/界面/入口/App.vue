@@ -1,6 +1,6 @@
 <template>
   <TitleScreen v-if="当前页 === '标题'" @开始="开始" />
-  <CreatorScreen v-else-if="当前页 === '创建'" />
+  <CreatorScreen v-else-if="当前页 === '创建'" @完成="当前页 = '主界面'" />
   <MainScreen v-else />
 </template>
 

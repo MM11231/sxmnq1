@@ -28,6 +28,21 @@
           "default": "",
           "type": "string"
         },
+        "身份": {
+          "default": "向导",
+          "type": "string",
+          "enum": [
+            "向导",
+            "哨兵"
+          ]
+        },
+        "路线": {
+          "default": "常规",
+          "type": "string",
+          "enum": [
+            "常规"
+          ]
+        },
         "执业等级": {
           "default": "F",
           "type": "string",
@@ -183,47 +198,6 @@
               "已出院",
               "已收编"
             ]
-          }
-        }
-      }
-    },
-    "治疗": {
-      "default": {},
-      "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "description": "哨兵姓名"
-      },
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "线数": {
-            "default": 0,
-            "type": "number"
-          },
-          "已完成": {
-            "default": 0,
-            "type": "number"
-          },
-          "失误次数": {
-            "default": 0,
-            "type": "number"
-          },
-          "失误日志": {
-            "default": {},
-            "type": "object",
-            "propertyNames": {
-              "type": "string",
-              "description": "失误序号"
-            },
-            "additionalProperties": {
-              "type": "string",
-              "description": "失误瞬间的短句"
-            }
-          },
-          "评级": {
-            "default": "",
-            "type": "string"
           }
         }
       }
