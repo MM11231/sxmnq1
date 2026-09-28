@@ -1,5 +1,8 @@
 node_modules
 
+# Claude Code 的本地权限/设置, 只对这台机器有意义, 不该进仓库
+.claude/settings.local.json
+
 .DS_Store
 Thumbs.db
 
