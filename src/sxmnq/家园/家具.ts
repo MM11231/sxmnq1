@@ -73,7 +73,7 @@ export function 算信赖加成(气氛: number): number {
   return Math.min(5, Math.floor(气氛 / 20));
 }
 
-/** 气氛的档位描述 (spec §9.3)。状态栏里那一句就是它。 */
+/** 气氛的档位描述 (spec §9.3)。诊所/App.vue 里那一句就是它。 */
 export function 气氛档(气氛: number): string {
   if (气氛 >= 60) return '让人不想走';
   if (气氛 >= 40) return '待着舒服';
