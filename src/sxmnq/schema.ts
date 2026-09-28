@@ -139,6 +139,8 @@ export const Schema = z.object({
           ...档案形状,
           信赖: z.coerce.number().prefault(0),
           好感: z.coerce.number().prefault(0),
+          /** 已经疏导过几次。治疗界面靠它显示「第 3 / 5 趟」 */
+          已治疗: z.coerce.number().prefault(0),
           状态: z.enum(['在诊', '已出院', '已收编']).prefault('在诊'),
         })
         .transform(data => {

@@ -2,7 +2,7 @@
   <div class="诊所">
     <header class="诊所__招牌">
       <span class="诊所__名">{{ 数据.诊所.名称 || '未命名的诊所' }}</span>
-      <span class="诊所__星">Lv{{ 数据.诊所.星级 }} · {{ 数据.诊所.$称号 }}</span>
+      <span class="诊所__星">{{ 数据.诊所.等级 }} 级 · {{ 数据.诊所.$称号 }}</span>
     </header>
 
     <div class="诊所__行">
@@ -16,9 +16,9 @@
     </div>
 
     <div class="诊所__条">
-      <span>{{ 数据.主角.姓名 || '向导' }} · {{ 数据.主角.执业等级 }}级</span>
+      <span>{{ 数据.主角.姓名 || '向导' }}</span>
       <span class="诊所__钱">{{ 数据.主角.金钱 }} 金</span>
-      <span class="诊所__设">诊室 {{ 数据.诊所.诊室等级 }} · 躺椅 {{ 数据.诊所.躺椅等级 }}</span>
+      <span class="诊所__设">床位 {{ 在诊数 }}/{{ 数据.诊所.床位 }}</span>
     </div>
 
     <h4 class="诊所__标">{{ 数据.世界.日期 }} · {{ 数据.世界.时段 }}</h4>
@@ -34,11 +34,20 @@
       </div>
       <p class="申请__源">{{ 申.战损来源 }}</p>
       <div class="申请__底">
-        <span class="申请__计">诊金 {{ 申.诊金 }} · 约 {{ 申.线数 }} 条丝线</span>
+        <span class="申请__计">诊金 {{ 申.诊金 }} · 约 {{ 申.线数 }} 条丝线 · 还要 {{ 申.预计次数 }} 趟</span>
+        <span v-if="!床位够吗(申.姓名)" class="申请__满">没床了</span>
         <button class="申请__钮 is-拒" @click="婉拒(申.姓名)">婉拒</button>
-        <button class="申请__钮 is-接" @click="接诊(申)">接诊</button>
+        <button class="申请__钮 is-接" :disabled="!床位够吗(申.姓名)" @click="接诊(申)">接诊</button>
       </div>
     </article>
+
+    <div v-if="数据.今日.待登记.length" class="诊所__待登">
+      <p class="诊所__待登标">桌上还压着 {{ 数据.今日.待登记.length }} 张没登记的申请单</p>
+      <!-- `_` 是必须的: 写成 (条, i) 会让 `条` 成为未使用的变量, eslint 报错。这里只要序号 -->
+      <span v-for="(_, i) in 数据.今日.待登记" :key="i" class="诊所__徽">
+        未登记 · {{ String(i + 1).padStart(2, '0') }}
+      </span>
+    </div>
 
     <div v-if="已接.length" class="诊所__已接">
       <span class="诊所__已接标">今日已接</span>
@@ -57,8 +66,15 @@
 // 成了没人用的函数, 被 tree-shaking 删掉, 连带整个 结算.ts 都不进包 —— 而且只有
 // 生产构建才会这样, dev 模式不做 tree-shaking, 一点征兆都没有。
 import TreatmentPanel from '../治疗/App.vue';
-import { 算线数, type 等级, type 治疗参数, type 治疗结果 } from '../治疗/game';
-import { 应用结算, 构建元指令, type 结算上下文 } from './结算';
+import {
+  算单次清除量,
+  算预计次数,
+  算线数,
+  type 等级,
+  type 治疗参数,
+  type 治疗结果,
+} from '../治疗/game';
+import { 应用结算, 构建元指令, 在诊人数, 能接诊吗, type 结算上下文 } from './结算';
 // 用 共用/数据 那一份(读最新一楼), **不要**在本地另起一个 store。
 //
 // 这里原来写的是 `./store`, 它把 message_id 钉成 getCurrentMessageId() —— 而界面只在
@@ -69,6 +85,7 @@ import { 应用结算, 构建元指令, type 结算上下文 } from './结算';
 // 预览里看不出来: 酒馆桩的 getVariables() 无视传进去的 variable_option, 永远返回
 // 同一个假变量, 于是两个 store 看起来共享数据。只有真酒馆才发作。
 import { useDataStore } from '../共用/数据';
+import { 盯住日期 } from '../共用/掷骰接线';
 
 interface 申请项 {
   姓名: string;
@@ -78,6 +95,8 @@ interface 申请项 {
   诊金: number;
   信赖: number;
   线数: number;
+  /** 按评级 A 估的还要几趟 (spec §5.2) —— 接诊**之前**就得看得见 */
+  预计次数: number;
 }
 
 const store = useDataStore();
@@ -87,13 +106,32 @@ const 精神比 = computed(
   () => (数据.value.主角.精神力 / Math.max(1, 数据.value.主角.精神力上限)) * 100,
 );
 
+const 在诊数 = computed(() => 在诊人数(数据.value.哨兵));
+
+/** 床位满时按钮置灰 + 一句「没床了」(spec §5.2)。已经在诊的那个人不受限 —— 那是复诊 */
+function 床位够吗(姓名: string): boolean {
+  return 能接诊吗(数据.value.哨兵, 数据.value.诊所.床位, 姓名);
+}
+
+/**
+ * 掷骰的唯一入口。它常驻挂载(在「诊所与申请」折叠区里用 v-show, 不销毁),
+ * 所以放在这里就够 —— 不需要在 主界面/App.vue 那个 500ms 轮询里再做一次。
+ */
+盯住日期({
+  今日: () => 数据.value.今日,
+  日期: () => 数据.value.世界.日期,
+  等级: () => 数据.value.诊所.等级,
+});
+
 function 算预计线数(姓名: string, 等级: 等级, 污染度: number) {
   return 算线数({
     污染度,
     哨兵等级: 等级,
-    主角等级: 数据.value.主角.执业等级,
+    主角等级: 数据.value.诊所.等级,
     信赖: 数据.value.哨兵[姓名]?.信赖 ?? 0,
-    躺椅等级: 数据.value.诊所.躺椅等级,
+    减耗: 0, // ① 地基恒为 0; ② 商店之后改成家具汇总
+    第几次: 1,
+    预计次数: 1,
   });
 }
 
@@ -109,6 +147,9 @@ const 待接 = computed<申请项[]>(() =>
       诊金: 项.诊金,
       信赖: 数据.value.哨兵[姓名]?.信赖 ?? 0,
       线数: 算预计线数(姓名, 项.等级, 项.污染度),
+      // 以**申请列表里写的**污染度为准, 而不是 哨兵 里存的旧值 ——
+      // 回头客重新出现在申请列表时, 只有申请列表是他此刻最新的状态 (同 应用结算)。
+      预计次数: 算预计次数(项.污染度, 算单次清除量(数据.value.诊所.等级)),
     }))
     .value(),
 );
@@ -124,14 +165,17 @@ const 已接 = computed(() =>
 const 诊疗 = ref<{ 姓名: string; 参数: 治疗参数 } | null>(null);
 
 function 接诊(申: 申请项) {
+  const 等级 = 数据.value.诊所.等级;
   诊疗.value = {
     姓名: 申.姓名,
     参数: {
       污染度: 申.污染度,
       哨兵等级: 申.等级,
-      主角等级: 数据.value.主角.执业等级,
+      主角等级: 等级,
       信赖: 申.信赖,
-      躺椅等级: 数据.value.诊所.躺椅等级,
+      减耗: 0, // ① 地基恒为 0
+      第几次: (数据.value.哨兵[申.姓名]?.已治疗 ?? 0) + 1,
+      预计次数: 算预计次数(申.污染度, 算单次清除量(等级)),
     },
   };
 }
@@ -148,28 +192,41 @@ async function 结束(果: 治疗结果) {
   const 申 = 数据.value.今日.申请列表[患.姓名];
   const 旧 = 数据.value.哨兵[患.姓名];
 
+  // 首次接诊时 应用结算 会照 患者 就地建档, 所以这里必须把**整份档案**带上。
+  // 少一个字段, schema 的 prefault 就会把它悄悄填成空串 —— 界面上表现为
+  // 「这个病人没有精神体」, 而哪里都不报错。
+  //
+  // 以申请列表那一份为准(它是这个人此刻最新的状态), 没有才退回已有的哨兵记录。
+  const 档 = 申 ?? 旧;
+
   // 先把结算时的状态拍下来 —— 元指令描述的是这一场**开始时**的处境,
   // 而应用结算会就地改掉精神力、名声这些东西。
   const 上: 结算上下文 = {
     世界: { 日期: 数据.value.世界.日期, 时段: 数据.value.世界.时段 },
     主角: {
       姓名: 数据.value.主角.姓名,
-      执业等级: 数据.value.主角.执业等级,
       精神力: 数据.value.主角.精神力,
       精神力上限: 数据.value.主角.精神力上限,
     },
     诊所: {
       名称: 数据.value.诊所.名称,
+      等级: 数据.value.诊所.等级,
       $称号: 数据.value.诊所.$称号,
       名声: 数据.value.诊所.名声,
-      星级: 数据.value.诊所.星级,
+      床位: 数据.value.诊所.床位,
     },
-    躺椅等级: 数据.value.诊所.躺椅等级,
+    减耗: 0, // ① 地基恒为 0; ② 商店之后改成家具汇总
     患者: {
       姓名: 患.姓名,
       等级: 患.参数.哨兵等级,
       污染度: 患.参数.污染度,
-      战损来源: 申?.战损来源 ?? '',
+      战损来源: 档?.战损来源 ?? '',
+      年龄: 档?.年龄 ?? 25,
+      地域: 档?.地域 ?? '',
+      精神体: 档?.精神体 ?? { 纲: '', 方向: '', 栖息: '', 体型: '', 危险: '' },
+      特征: 档?.特征 ?? [],
+      A面: 档?.A面 ?? '',
+      B面: 档?.B面 ?? '',
       信赖: 旧?.信赖 ?? 0,
       好感: 旧?.好感 ?? 0,
       基础诊金: 申?.诊金 ?? 0,
@@ -317,6 +374,21 @@ async function 结束(果: 治疗结果) {
     font-size: 0.78em;
   }
 
+  /* 掷完但 AI 还没起名的那些。虚框 + 压暗, 一眼看出「还不能接」——
+     它们不在 申请列表 里, 所以点不动, 是这局的待办而不是这一屏的病人 (spec §8.2) */
+  &__待登 {
+    margin: 8px 0;
+    padding: 8px;
+    border: 1px dashed currentColor;
+    border-radius: 6px;
+    opacity: 0.55;
+  }
+
+  &__待登标 {
+    margin: 0 0 6px;
+    font-size: 12px;
+  }
+
   &__罩 {
     position: fixed;
     inset: 0;
@@ -383,6 +455,14 @@ async function 结束(果: 治疗结果) {
     min-width: 0;
   }
 
+  /* 床位满了。接诊按钮置灰时在旁边说明原因 ——
+     只置灰不说话, 玩家会以为是坏了 (spec §5.2) */
+  &__满 {
+    margin-left: auto;
+    font-size: 11px;
+    opacity: 0.6;
+  }
+
   &__钮 {
     flex: none;
     min-height: 30px;
@@ -394,12 +474,18 @@ async function 结束(果: 治疗结果) {
     cursor: pointer;
     transition: background 0.18s ease;
 
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
     &.is-接 {
       background: rgba(127, 227, 255, 0.15);
       border-color: rgba(127, 227, 255, 0.36);
       color: #a8ecff;
 
-      &:hover {
+      /* 置灰的按钮别再亮起来 —— 否则「没床了」的按钮看着像能点 */
+      &:not(:disabled):hover {
         background: rgba(127, 227, 255, 0.25);
       }
     }
@@ -409,7 +495,7 @@ async function 结束(果: 治疗结果) {
       border-color: rgba(255, 255, 255, 0.08);
       color: #77828f;
 
-      &:hover {
+      &:not(:disabled):hover {
         background: rgba(255, 255, 255, 0.08);
       }
     }

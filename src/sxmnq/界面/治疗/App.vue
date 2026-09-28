@@ -3,6 +3,7 @@
     <header class="疏导__头">
       <span class="疏导__名">{{ 哨兵姓名 }}</span>
       <span class="疏导__污">污染 {{ 参数.污染度 }}</span>
+      <span class="疏导__趟">第 {{ 参数.第几次 }} / {{ 参数.预计次数 }} 趟</span>
       <span class="疏导__空" />
       <span class="疏导__数">剩 {{ 未清数 }}</span>
       <span class="疏导__数" :class="{ 'is-有': 失误日志.length > 0 }">失误 {{ 失误日志.length }}</span>
@@ -98,7 +99,7 @@ const 提示语 = ref('');
 
 const 未清数 = computed(() => 清掉的.value.filter(已清 => !已清).length);
 const 已完成 = computed(() => 线数.value - 未清数.value);
-const 当前消耗 = computed(() => 算精神力消耗(线数.value, 失误日志.value.length, props.参数.躺椅等级));
+const 当前消耗 = computed(() => 算精神力消耗(线数.value, 失误日志.value.length, props.参数.减耗));
 
 let 飘字号 = 0;
 let 定时器: ReturnType<typeof setTimeout>[] = [];
@@ -260,6 +261,12 @@ onBeforeUnmount(() => {
 
   &__污 {
     color: #7d8896;
+  }
+
+  /* 「第 3 / 5 趟」—— 玩家在这里才知道这个人还得来几趟 (spec §5.2) */
+  &__趟 {
+    font-size: 12px;
+    opacity: 0.7;
   }
 
   &__空 {

@@ -251,6 +251,10 @@
             "default": 0,
             "type": "number"
           },
+          "已治疗": {
+            "default": 0,
+            "type": "number"
+          },
           "状态": {
             "default": "在诊",
             "type": "string",
