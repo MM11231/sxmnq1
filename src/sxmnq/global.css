@@ -1,5 +1,9 @@
 /* 页面级样式: 让界面铺满 iframe。
  *
+ * 除了页面级样式, 这里还放着 `.界卡` 这个**公共类** —— 折叠区里每个块自己的
+ * 卡片外壳。它不是页面级的, 但三个块共用一份, 抄进各自的 scoped 样式里迟早
+ * 会长得不一样, 所以留在全局 (见文件末尾)。
+ *
  * 界面的**位置和大小**由卡里的样式表钉死(见 src/哨向模拟器/index.yaml 的「隐藏楼层」
  * 脚本), 这里只负责让页面自身吃满 iframe —— 两件事, 别混。
  *
@@ -26,5 +30,30 @@ body {
 @media (max-width: 480px) {
   button {
     min-height: 44px;
+  }
+}
+
+/* 折叠区里每一个块自己的卡片外壳。
+ *
+ * 三个块原来是同一张卡 (状态栏/App.vue 的 .诊所 根元素), 拆开之后外壳留在这儿 ——
+ * 免得同一段 margin/padding/圆角/渐变底色抄三遍, 抄着抄着就长得不一样了。
+ * 块自己的排版仍然写在各自的 <style scoped> 里。 */
+.界卡 {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(168deg, #141a23 0%, #0d1117 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  color: #d8dee6;
+  font-size: 13px;
+  line-height: 1.5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (max-width: 480px) {
+  .界卡 {
+    padding: 11px 12px;
+    font-size: 12.5px;
   }
 }

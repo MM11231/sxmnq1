@@ -18,15 +18,27 @@
       <p v-else class="界__空">{{ 生成中 ? '正在写……' : '（这一楼没有正文）' }}</p>
     </main>
 
-    <section class="界__态" :class="{ 'is-展': 展态 }">
-      <button class="界__态标" @click="展态 = !展态">
-        <i class="fa-solid" :class="展态 ? 'fa-chevron-down' : 'fa-chevron-up'" />
-        <span>诊所与申请</span>
-        <span v-if="待接数" class="界__角标">{{ 待接数 }}</span>
-      </button>
-      <div v-show="展态" class="界__态体">
-        <StatusPanel />
+    <section class="界__态">
+      <div class="界__签">
+        <button
+          class="界__态标"
+          :class="{ 'is-开': 展块 === '诊所与申请' }"
+          @click="切块('诊所与申请')"
+        >
+          <span>诊所与申请</span>
+          <span v-if="待接数" class="界__角标">{{ 待接数 }}</span>
+        </button>
+        <button class="界__态标" :class="{ 'is-开': 展块 === '家园' }" @click="切块('家园')">
+          <span>家园</span>
+          <span v-if="仓库数" class="界__角标">{{ 仓库数 }}</span>
+        </button>
       </div>
+
+      <!-- 两个块**都常驻挂载**, 只切 v-show —— 见 spec §9.1:
+           `盯住日期` 挂在 StatusPanel 里, 改用 v-if 会把那条 watch 一起销毁,
+           掷骰与申请列表会**静默死掉**(不报错, 只是永远不再出现新申请)。 -->
+      <div v-show="展块 === '诊所与申请'" class="界__态体"><StatusPanel /></div>
+      <div v-show="展块 === '家园'" class="界__态体"><HomePanel @门="展块 = null" /></div>
     </section>
 
     <footer class="界__底">
@@ -57,6 +69,8 @@
 // import 名必须是 ASCII: Vue 的模板编译器认不出非 ASCII 的标签名, 写成 `<状态栏 />`
 // 会被当纯文本渲染, 绑定全丢, 生产构建时才发作。详见 状态栏/App.vue 里的同一处注释。
 import StatusPanel from '../状态栏/App.vue';
+import HomePanel from '../家园/App.vue';
+import { 算仓库 } from '../../家园/家具';
 import { useDataStore } from '../共用/数据';
 import { use顶栏高 } from '../共用/量顶栏';
 import { 取正文, 读最新原文 } from './正文';
@@ -66,7 +80,13 @@ const 数据 = computed(() => store.data);
 
 const 原文 = ref('');
 const 生成中 = ref(false);
-const 展态 = ref(false);
+/** 现在开着哪一块。null = 全折叠。互斥就是「只有一个值」这件事本身 (spec §9) */
+const 展块 = ref<'诊所与申请' | '家园' | null>(null);
+
+/** 点开着的那个 = 收起它; 点别的 = 换过去 */
+function 切块(块: '诊所与申请' | '家园') {
+  展块.value = 展块.value === 块 ? null : 块;
+}
 const 看历史 = ref(false);
 const 忙 = ref(false);
 const 文区 = ref<HTMLElement | null>(null);
@@ -92,6 +112,9 @@ const 待接数 = computed(
       .filter(([, 项]) => 项.状态 === '待接')
       .value().length,
 );
+
+/** 「家园」按钮上的角标 = 仓库里有几件没摆 (spec §6.3/§9) */
+const 仓库数 = computed(() => 算仓库(数据.value.诊所.家具).length);
 
 const 历史 = computed(() => {
   try {
@@ -244,20 +267,31 @@ const 继续 = () => 跑('/continue await=true');
   &__态 {
     flex: none;
     border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
 
-    // 展开时给它一个上限, 免得申请一多就把正文挤没了。
-    &.is-展 .界__态体 {
-      max-height: 46vh;
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
+  /* 按钮排成一行。展开态靠 is-开 的底色认, 不再用箭头 —— 互斥的按钮更像
+     标签页, 一个上下箭头反而说不清它管的是哪一块 */
+  &__签 {
+    display: flex;
+  }
+
+  /* 展开体的上限。原来这个上限挂在「展开态」那个类名下的 .界__态体 上, 现在不需要了:
+     `v-show` 已经管了显不显示, 上限常驻即可。
+     padding 是新加的 —— 原来 `.界__态体` **一条规则都没有**, 块直接贴着按钮行;
+     现在每块自带 .界卡 的 margin, 左右再留一点, 免得贴边。 */
+  &__态体 {
+    padding: 0 12px 12px;
+    max-height: 46vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   &__态标 {
     display: flex;
     align-items: center;
     gap: 8px;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     min-height: 42px;
     padding: 0 14px;
     border: none;
@@ -272,6 +306,17 @@ const 继续 = () => 跑('/continue await=true');
       color: #5c6773;
       font-size: 0.9em;
     }
+
+    /* 开着的那一块。`i` 那条规则留着 —— 现在没有箭头图标, 但将来加回来时
+       它会自动跟着变色, 不用再改两处 */
+    &.is-开 {
+      background: rgba(127, 227, 255, 0.08);
+      color: #a8ecff;
+
+      i {
+        color: #a8ecff;
+      }
+    }
   }
 
   &__角标 {
@@ -283,10 +328,6 @@ const 继续 = () => 跑('/continue await=true');
     color: #a8ecff;
     font-size: 0.86em;
     font-variant-numeric: tabular-nums;
-  }
-
-  &__态体 {
-    padding: 0 12px 12px;
   }
 
   &__底 {
