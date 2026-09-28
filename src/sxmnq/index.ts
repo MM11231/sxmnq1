@@ -1,5 +1,7 @@
 import { waitUntil } from 'async-wait-until';
-import App from './界面/主界面/App.vue';
+// 挂的是「入口」而不是主界面 —— 它负责决定现在该显示标题页、创建页还是主界面
+// (见 界面/入口/App.vue)。
+import App from './界面/入口/App.vue';
 import './global.css';
 
 // 界面只认第一楼。

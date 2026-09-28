@@ -57,6 +57,7 @@
 // import 名必须是 ASCII: Vue 的模板编译器认不出非 ASCII 的标签名, 写成 `<状态栏 />`
 // 会被当纯文本渲染, 绑定全丢, 生产构建时才发作。详见 状态栏/App.vue 里的同一处注释。
 import StatusPanel from '../状态栏/App.vue';
+import { use顶栏高 } from '../共用/量顶栏';
 import { 取正文, 读最新原文 } from './正文';
 import { useDataStore } from './store';
 
@@ -69,7 +70,9 @@ const 展态 = ref(false);
 const 看历史 = ref(false);
 const 忙 = ref(false);
 const 文区 = ref<HTMLElement | null>(null);
-const 顶栏高 = ref(0);
+
+// 让开酒馆工具栏的活交给公共件了 —— 标题页和创建页也要让, 三页共用一份。
+const 顶栏高 = use顶栏高();
 
 const 正文 = computed(() => 取正文(原文.value));
 
@@ -138,46 +141,6 @@ try {
 } catch {
   // 不在酒馆里(开发期直接开 index.html)时没有这些事件, 忽略。
 }
-
-/**
- * 让开酒馆的顶栏 —— 这是这里唯一还要管的事。
- *
- * 界面的位置和大小由卡里的样式表钉死(见 index.yaml 的「隐藏楼层」脚本), 不用自己抢高度:
- * JS 和样式表同时写 iframe 高度只会互相打架, 而 `!important` 是样式表赢。
- *
- * 酒馆的工具栏是 fixed 浮在聊天区上面的, 不吃布局 —— 不主动让开的话它会压住我们的顶栏。
- * 移动端是 #top-bar, 桌面端是 #top-settings-holder, 谁在就让谁。
- *
- * 让开多少 = 工具栏的底 - **界面自己的顶**。不能直接拿工具栏的底当重叠量: 聊天区本来就
- * 不从屏幕顶端开始, 那样会白白多让出一块空白。
- */
-function 量顶栏() {
-  try {
-    const 父档 = window.parent.document;
-    const 界顶 = frameElement ? frameElement.getBoundingClientRect().top : 0;
-    for (const 选 of ['#top-bar', '#top-settings-holder']) {
-      const 元 = 父档.querySelector(选);
-      if (!元) continue;
-      const 框 = 元.getBoundingClientRect();
-      if (框.height > 0) {
-        顶栏高.value = Math.max(0, Math.round(框.bottom - 界顶));
-        return;
-      }
-    }
-    顶栏高.value = 0;
-  } catch {
-    // 跨域或没有父窗口, 就当没有工具栏
-  }
-}
-
-onMounted(() => {
-  量顶栏();
-  window.addEventListener('resize', 量顶栏);
-  // 顶栏高度不是只有 resize 才会变(切全屏、收起侧栏、手机地址栏收放)。
-  const 计时 = setInterval(量顶栏, 2000);
-  onUnmounted(() => clearInterval(计时));
-});
-onUnmounted(() => window.removeEventListener('resize', 量顶栏));
 
 async function 跑(指令: string) {
   if (忙.value) return;
