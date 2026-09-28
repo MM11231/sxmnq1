@@ -25,8 +25,18 @@ export function 好感分档(好感: number): string {
   return '认识的向导，会用公事公办的态度对待';
 }
 
-const 称号表 = ['无名诊所', '略有耳闻', '小有名气', '声名远播', '声名鹊起'];
+/**
+ * 等级 → 称号。**五档一一对应，不做数学换算** —— 以前是拿 1~5 的星级去查表，
+ * 现在直接按等级查，少一层「数字对不对得上」的心智负担。
+ */
+const 称号表: Record<string, string> = {
+  D: '无名诊所',
+  C: '略有耳闻',
+  B: '小有名气',
+  A: '声名远播',
+  S: '声名鹊起',
+};
 
-export function 星级称号(星级: number): string {
-  return 称号表[Math.min(Math.max(Math.round(星级), 1), 5) - 1];
+export function 等级称号(等级: string): string {
+  return 称号表[等级] ?? 称号表.D;
 }

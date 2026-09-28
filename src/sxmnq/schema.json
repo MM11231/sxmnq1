@@ -47,19 +47,6 @@
           "default": false,
           "type": "boolean"
         },
-        "执业等级": {
-          "default": "F",
-          "type": "string",
-          "enum": [
-            "F",
-            "E",
-            "D",
-            "C",
-            "B",
-            "A",
-            "S"
-          ]
-        },
         "精神力": {
           "default": 0,
           "type": "number"
@@ -82,19 +69,22 @@
           "default": "",
           "type": "string"
         },
+        "等级": {
+          "default": "D",
+          "type": "string",
+          "enum": [
+            "D",
+            "C",
+            "B",
+            "A",
+            "S"
+          ]
+        },
         "名声": {
           "default": 0,
           "type": "number"
         },
-        "星级": {
-          "default": 1,
-          "type": "number"
-        },
-        "诊室等级": {
-          "default": 1,
-          "type": "number"
-        },
-        "躺椅等级": {
+        "床位": {
           "default": 1,
           "type": "number"
         }
@@ -117,8 +107,6 @@
               "等级": {
                 "type": "string",
                 "enum": [
-                  "F",
-                  "E",
                   "D",
                   "C",
                   "B",
@@ -169,8 +157,6 @@
             "default": "D",
             "type": "string",
             "enum": [
-              "F",
-              "E",
               "D",
               "C",
               "B",

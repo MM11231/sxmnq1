@@ -5,7 +5,12 @@
  * 因此可以在控制台里手算验证数值, 也能被 game.test.mjs 直接跑。
  */
 
-export type 等级 = 'F' | 'E' | 'D' | 'C' | 'B' | 'A' | 'S';
+import { 等级序, 等级值, type 等级 } from '../../等级';
+
+// 再导出: 原来 等级 就住在这个文件里, 外面(状态栏等)是 `from '../治疗/game'` 拿的。
+// 保留这一行, 那些 import 一个字都不用改。
+export type { 等级 };
+
 export type 评级 = 'S' | 'A' | 'B' | 'C';
 export type 命中 = '成功' | '失误' | '无';
 
@@ -47,8 +52,6 @@ export const 触屏容差 = 30;
 
 /** 清掉一条之后, 下一条亮起来之前的停顿. 不是计时压力, 只是给个节奏 */
 export const 换线停顿 = 380;
-
-const 等级值: Record<等级, number> = { F: 0, E: 1, D: 2, C: 3, B: 4, A: 5, S: 6 };
 
 function 钳(值: number, 下限: number, 上限: number) {
   return Math.min(上限, Math.max(下限, 值));

@@ -1,4 +1,4 @@
-import { 好感分档, 信赖分档, 星级称号 } from './分档';
+import { 好感分档, 信赖分档, 等级称号 } from './分档';
 
 export const Schema = z.object({
   世界: z
@@ -30,7 +30,6 @@ export const Schema = z.object({
       // chat 级变量。
       已创建: z.boolean().prefault(false),
 
-      执业等级: z.enum(['F', 'E', 'D', 'C', 'B', 'A', 'S']).prefault('F'),
       精神力: z.coerce.number().prefault(0),
       精神力上限: z.coerce.number().prefault(100),
       金钱: z.coerce.number().prefault(0),
@@ -44,20 +43,18 @@ export const Schema = z.object({
   诊所: z
     .object({
       名称: z.string().prefault(''),
+      // ★ 合并了原来的 主角.执业等级 与 诊所.星级: 两者原本都是「你在这一行的分量」,
+      //   只分面向病人还是面向同行, 分开就会出现「星级 4 但执业等级 D」这种荒谬状态。
+      等级: z.enum(['D', 'C', 'B', 'A', 'S']).prefault('D'),
       名声: z.coerce.number().prefault(0),
-      星级: z.coerce.number().prefault(1),
-      诊室等级: z.coerce.number().prefault(1),
-      躺椅等级: z.coerce.number().prefault(1),
+      // 开局自带一张床。②商店之后改由 摆位 派生, 这里先落成普通数字。
+      床位: z.coerce.number().prefault(1),
     })
-    .transform(data => {
-      const 星级 = _.clamp(data.星级, 1, 5);
-      return {
-        ...data,
-        名声: _.clamp(data.名声, 0, 100),
-        星级,
-        $称号: 星级称号(星级),
-      };
-    })
+    .transform(data => ({
+      ...data,
+      名声: _.clamp(data.名声, 0, 100),
+      $称号: 等级称号(data.等级),
+    }))
     .prefault({}),
 
   今日: z
@@ -66,7 +63,7 @@ export const Schema = z.object({
         .record(
           z.string().describe('哨兵姓名'),
           z.object({
-            等级: z.enum(['F', 'E', 'D', 'C', 'B', 'A', 'S']),
+            等级: z.enum(['D', 'C', 'B', 'A', 'S']),
             污染度: z.coerce.number(),
             战损来源: z.string(),
             诊金: z.coerce.number(),
@@ -82,7 +79,7 @@ export const Schema = z.object({
       z.string().describe('哨兵姓名'),
       z
         .object({
-          等级: z.enum(['F', 'E', 'D', 'C', 'B', 'A', 'S']).prefault('D'),
+          等级: z.enum(['D', 'C', 'B', 'A', 'S']).prefault('D'),
           污染度: z.coerce.number().prefault(0),
           战损来源: z.string().prefault(''),
           信赖: z.coerce.number().prefault(0),
