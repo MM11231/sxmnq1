@@ -17,3 +17,6 @@ components.d.ts
 
 # 原始卡备份与中间产物（不入公开仓库）
 归档/
+
+# 头脑风暴的 mockup 会话（本机临时产物, 公开仓库不要）
+.superpowers/
