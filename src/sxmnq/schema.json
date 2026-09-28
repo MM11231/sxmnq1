@@ -94,6 +94,61 @@
       "default": {},
       "type": "object",
       "properties": {
+        "已生成于": {
+          "default": "",
+          "type": "string"
+        },
+        "待登记": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "等级": {
+                "$ref": "#/$defs/__schema0"
+              },
+              "污染度": {
+                "$ref": "#/$defs/__schema1"
+              },
+              "诊金": {
+                "$ref": "#/$defs/__schema2"
+              },
+              "年龄": {
+                "$ref": "#/$defs/__schema3"
+              },
+              "地域": {
+                "$ref": "#/$defs/__schema4"
+              },
+              "精神体": {
+                "$ref": "#/$defs/__schema5"
+              },
+              "特征": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "A面": {
+                "$ref": "#/$defs/__schema7"
+              },
+              "B面": {
+                "$ref": "#/$defs/__schema8"
+              },
+              "战损来源": {
+                "$ref": "#/$defs/__schema9"
+              },
+              "姓名": {
+                "default": "",
+                "type": "string"
+              },
+              "字数": {
+                "default": 3,
+                "type": "number"
+              },
+              "中式": {
+                "default": true,
+                "type": "boolean"
+              }
+            }
+          }
+        },
         "申请列表": {
           "default": {},
           "type": "object",
@@ -105,25 +160,37 @@
             "type": "object",
             "properties": {
               "等级": {
-                "type": "string",
-                "enum": [
-                  "D",
-                  "C",
-                  "B",
-                  "A",
-                  "S"
-                ]
+                "$ref": "#/$defs/__schema0"
               },
               "污染度": {
-                "type": "number"
-              },
-              "战损来源": {
-                "type": "string"
+                "$ref": "#/$defs/__schema1"
               },
               "诊金": {
-                "type": "number"
+                "$ref": "#/$defs/__schema2"
+              },
+              "年龄": {
+                "$ref": "#/$defs/__schema3"
+              },
+              "地域": {
+                "$ref": "#/$defs/__schema4"
+              },
+              "精神体": {
+                "$ref": "#/$defs/__schema5"
+              },
+              "特征": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "A面": {
+                "$ref": "#/$defs/__schema7"
+              },
+              "B面": {
+                "$ref": "#/$defs/__schema8"
+              },
+              "战损来源": {
+                "$ref": "#/$defs/__schema9"
               },
               "状态": {
+                "default": "待接",
                 "type": "string",
                 "enum": [
                   "待接",
@@ -131,14 +198,7 @@
                   "已婉拒"
                 ]
               }
-            },
-            "required": [
-              "等级",
-              "污染度",
-              "战损来源",
-              "诊金",
-              "状态"
-            ]
+            }
           }
         }
       }
@@ -154,23 +214,34 @@
         "type": "object",
         "properties": {
           "等级": {
-            "default": "D",
-            "type": "string",
-            "enum": [
-              "D",
-              "C",
-              "B",
-              "A",
-              "S"
-            ]
+            "$ref": "#/$defs/__schema0"
           },
           "污染度": {
-            "default": 0,
-            "type": "number"
+            "$ref": "#/$defs/__schema1"
+          },
+          "诊金": {
+            "$ref": "#/$defs/__schema2"
+          },
+          "年龄": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "地域": {
+            "$ref": "#/$defs/__schema4"
+          },
+          "精神体": {
+            "$ref": "#/$defs/__schema5"
+          },
+          "特征": {
+            "$ref": "#/$defs/__schema6"
+          },
+          "A面": {
+            "$ref": "#/$defs/__schema7"
+          },
+          "B面": {
+            "$ref": "#/$defs/__schema8"
           },
           "战损来源": {
-            "default": "",
-            "type": "string"
+            "$ref": "#/$defs/__schema9"
           },
           "信赖": {
             "default": 0,
@@ -191,6 +262,80 @@
           }
         }
       }
+    }
+  },
+  "$defs": {
+    "__schema0": {
+      "default": "D",
+      "type": "string",
+      "enum": [
+        "D",
+        "C",
+        "B",
+        "A",
+        "S"
+      ]
+    },
+    "__schema1": {
+      "default": 0,
+      "type": "number"
+    },
+    "__schema2": {
+      "default": 0,
+      "type": "number"
+    },
+    "__schema3": {
+      "default": 25,
+      "type": "number"
+    },
+    "__schema4": {
+      "default": "",
+      "type": "string"
+    },
+    "__schema5": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "纲": {
+          "default": "",
+          "type": "string"
+        },
+        "方向": {
+          "default": "",
+          "type": "string"
+        },
+        "栖息": {
+          "default": "",
+          "type": "string"
+        },
+        "体型": {
+          "default": "",
+          "type": "string"
+        },
+        "危险": {
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
+    "__schema6": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "__schema7": {
+      "default": "",
+      "type": "string"
+    },
+    "__schema8": {
+      "default": "",
+      "type": "string"
+    },
+    "__schema9": {
+      "default": "",
+      "type": "string"
     }
   }
 }

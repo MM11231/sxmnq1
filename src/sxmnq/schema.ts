@@ -1,5 +1,40 @@
 import { 好感分档, 信赖分档, 等级称号 } from './分档';
 
+/** 精神体的四项掷定值。具体物种是 AI 写的, 不进变量 */
+const 精神体形状 = z
+  .object({
+    纲: z.string().prefault(''),
+    方向: z.string().prefault(''),
+    栖息: z.string().prefault(''),
+    体型: z.string().prefault(''),
+    危险: z.string().prefault(''),
+  })
+  .prefault({});
+
+/**
+ * 一份哨兵档案。**待登记 / 申请列表 / 哨兵 三处共用这一个形状。**
+ *
+ * spec §8.5 说「三个结构的字段必须一致 —— 人是同一个对象在流转, 不重新生成」。
+ * 靠这一处保证, 而不是靠三处手抄同一份字段表: 手抄的版本改一处忘两处,
+ * 而漏掉的字段会被 zod **静默丢掉** —— 界面上看起来只是「这个人没精神体」。
+ *
+ * 每个字段都带 prefault。不是因为前端会漏写, 是因为 MVU 每次 parse 的是
+ * **整份** stat_data, 任何一个字段缺失都会让 safeParse 整体失败、
+ * 于是整个 store 退回默认值 (util/mvu.ts: `if (result.error) return`)。
+ */
+const 档案形状 = {
+  等级: z.enum(['D', 'C', 'B', 'A', 'S']).prefault('D'),
+  污染度: z.coerce.number().prefault(0),
+  诊金: z.coerce.number().prefault(0),
+  年龄: z.coerce.number().prefault(25),
+  地域: z.string().prefault(''),
+  精神体: 精神体形状,
+  特征: z.array(z.string()).prefault([]),
+  A面: z.string().prefault(''),
+  B面: z.string().prefault(''),
+  战损来源: z.string().prefault(''),
+};
+
 export const Schema = z.object({
   世界: z
     .object({
@@ -59,16 +94,38 @@ export const Schema = z.object({
 
   今日: z
     .object({
+      // ★ 日期戳。iframe 每次渲染消息都会重建, 掷骰逻辑在里面跑,
+      //   没有这个戳就会一天掷好几批 (spec §8.4)。
+      //   与 世界.日期 相等 = 今天已经掷过, 什么都不做。
+      已生成于: z.string().prefault(''),
+
+      // 掷完还没名字的。**数组不是 record** —— 还没有 key。
+      // 界面上显示成「未登记 · 01」。
+      待登记: z
+        .array(
+          z.object({
+            ...档案形状,
+            // 名字由 AI 写 (§8.2), 写完之后由 流转.ts 的 晋级已命名的 搬进 申请列表。
+            // 它必须在这里 —— 少了它, zod 每次 parse 都会把 AI 写的名字剥掉,
+            // 于是那些条目永远晋级不了, 而界面上什么都不报。
+            姓名: z.string().prefault(''),
+            // 这两项是给 AI 的指令, 不是给人看的属性
+            字数: z.coerce.number().prefault(3),
+            中式: z.boolean().prefault(true),
+          }),
+        )
+        .prefault([]),
+
+      // AI 命名后进来。以姓名为 key
       申请列表: z
         .record(
           z.string().describe('哨兵姓名'),
-          z.object({
-            等级: z.enum(['D', 'C', 'B', 'A', 'S']),
-            污染度: z.coerce.number(),
-            战损来源: z.string(),
-            诊金: z.coerce.number(),
-            状态: z.enum(['待接', '已接', '已婉拒']),
-          }),
+          z
+            .object({
+              ...档案形状,
+              状态: z.enum(['待接', '已接', '已婉拒']).prefault('待接'),
+            })
+            .transform(data => ({ ...data, 污染度: _.clamp(data.污染度, 0, 100) })),
         )
         .prefault({}),
     })
@@ -79,9 +136,7 @@ export const Schema = z.object({
       z.string().describe('哨兵姓名'),
       z
         .object({
-          等级: z.enum(['D', 'C', 'B', 'A', 'S']).prefault('D'),
-          污染度: z.coerce.number().prefault(0),
-          战损来源: z.string().prefault(''),
+          ...档案形状,
           信赖: z.coerce.number().prefault(0),
           好感: z.coerce.number().prefault(0),
           状态: z.enum(['在诊', '已出院', '已收编']).prefault('在诊'),
