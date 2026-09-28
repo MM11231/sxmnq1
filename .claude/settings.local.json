@@ -1,0 +1,11 @@
+{
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "chrome-devtools"
+  ],
+  "permissions": {
+    "allow": [
+      "PowerShell($p = \"f:\\\\桌面\\\\[哨向]白塔.json\"; $j = Get-Content -LiteralPath $p -Raw -Encoding UTF8 | ConvertFrom-Json; $all=@{}; foreach\\($e in $j.data.character_book.entries\\){ foreach\\($pr in $e.extensions.PSObject.Properties\\){ $k=$pr.Name; $v=\"$\\($pr.Value\\)\"; if\\(-not $all.ContainsKey\\($k\\)\\){$all[$k]=@{}}; if\\(-not $all[$k].ContainsKey\\($v\\)\\){$all[$k][$v]=0}; $all[$k][$v]++ } }; foreach\\($k in $all.Keys\\){ \"== $k ==\"; $all[$k].GetEnumerator\\(\\) | Sort-Object -Property @{Expression={[int]$_.Value}} -Descending | ForEach-Object { \"   [$\\($_.Key\\)] x$\\($_.Value\\)\" } })"
+    ]
+  }
+}
