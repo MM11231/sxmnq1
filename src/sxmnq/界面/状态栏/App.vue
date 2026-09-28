@@ -59,7 +59,16 @@
 import TreatmentPanel from '../治疗/App.vue';
 import { 算线数, type 等级, type 治疗参数, type 治疗结果 } from '../治疗/game';
 import { 应用结算, 构建元指令, type 结算上下文 } from './结算';
-import { useDataStore } from './store';
+// 用 共用/数据 那一份(读最新一楼), **不要**在本地另起一个 store。
+//
+// 这里原来写的是 `./store`, 它把 message_id 钉成 getCurrentMessageId() —— 而界面只在
+// 第 0 楼挂载(见 index.yaml 里 [界面]主界面 那条正则的注释), 所以那个值恒为 0。
+// 后果是: 状态栏显示的是**开局冻结状态**, 玩家点接诊/结算全写进第 0 楼的死 store,
+// 而同一屏顶部的「待接数」读的是最新楼 —— 两个数字对不上。
+//
+// 预览里看不出来: 酒馆桩的 getVariables() 无视传进去的 variable_option, 永远返回
+// 同一个假变量, 于是两个 store 看起来共享数据。只有真酒馆才发作。
+import { useDataStore } from '../共用/数据';
 
 interface 申请项 {
   姓名: string;
