@@ -1,0 +1,6 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "echo '静态产物已随仓库提交, 这里不需要再构建'",
+  "installCommand": "echo '同上, 不需要装依赖'",
+  "outputDirectory": "dist/预览"
+}
