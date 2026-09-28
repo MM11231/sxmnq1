@@ -99,7 +99,7 @@ const 提示语 = ref('');
 
 const 未清数 = computed(() => 清掉的.value.filter(已清 => !已清).length);
 const 已完成 = computed(() => 线数.value - 未清数.value);
-const 当前消耗 = computed(() => 算精神力消耗(线数.value, 失误日志.value.length, props.参数.减耗));
+const 当前消耗 = computed(() => 算精神力消耗(线数.value, 失误日志.value.length));
 
 let 飘字号 = 0;
 let 定时器: ReturnType<typeof setTimeout>[] = [];
