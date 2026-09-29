@@ -3,6 +3,7 @@
 import _ from 'lodash';
 import fs from 'node:fs';
 import path from 'node:path';
+<<<<<<< HEAD
 import module from 'node:module';
 import z from 'zod';
 
@@ -33,6 +34,10 @@ module.registerHooks({
   },
 });
 
+=======
+import z from 'zod';
+
+>>>>>>> 7f92d0b6cabecacd6ca52f5c77d6f18fa6a3b4b9
 fs.globSync('src/**/schema.ts').forEach(async schema_file => {
   try {
     globalThis._ = _;
@@ -41,9 +46,13 @@ fs.globSync('src/**/schema.ts').forEach(async schema_file => {
       (process.platform === 'win32' ? 'file://' : '') + path.resolve(import.meta.dirname, schema_file)
     );
     if (_.has(module, 'Schema')) {
+<<<<<<< HEAD
       // let 不是 const: 下面要把函数型的 Schema 调用成对象。原来写的 const 再赋值,
       // 一跑到这儿就是 TypeError —— 同样被 catch 吞掉、只留一行 console.error。
       let schema = _.get(module, 'Schema');
+=======
+      const schema = _.get(module, 'Schema');
+>>>>>>> 7f92d0b6cabecacd6ca52f5c77d6f18fa6a3b4b9
       if (_.isFunction(schema)) {
         schema = schema();
       }

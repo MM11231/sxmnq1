@@ -1,8 +1,11 @@
 node_modules
 
+<<<<<<< HEAD
 # Claude Code 的本地权限/设置, 只对这台机器有意义, 不该进仓库
 .claude/settings.local.json
 
+=======
+>>>>>>> 7f92d0b6cabecacd6ca52f5c77d6f18fa6a3b4b9
 .DS_Store
 Thumbs.db
 
@@ -14,6 +17,9 @@ pnpm-debug.log*
 
 auto-imports.d.ts
 components.d.ts
+<<<<<<< HEAD
 
 # 原始卡备份与中间产物（不入公开仓库）
 归档/
+=======
+>>>>>>> 7f92d0b6cabecacd6ca52f5c77d6f18fa6a3b4b9
