@@ -10,35 +10,48 @@
       </button>
     </header>
 
-    <main ref="文区" class="界__文">
-      <template v-if="正文">
-        <p v-for="(段, 序) in 段落" :key="序">{{ 段 }}</p>
-        <span v-if="生成中" class="界__笔">▍</span>
-      </template>
-      <p v-else class="界__空">{{ 生成中 ? '正在写……' : '（这一楼没有正文）' }}</p>
-    </main>
+    <!-- 台子上叠着四页: 正文常驻在最底下, 另外三页绝对定位盖在它上面。
+         点标签 = 换一整页, 正文被整块盖住 —— 不再是把标签条顶上去、在下面长一块。
+         (旧样子: 点「诊所」, 标签条从 y=630 升到 y=442, 卡片在下面长出来, 正文被压掉一半。)
 
-    <section class="界__态">
-      <div class="界__签">
-        <button class="界__态标" :class="{ 'is-开': 展块 === '诊所' }" @click="切块('诊所')">
-          <span>诊所</span>
-        </button>
-        <button class="界__态标" :class="{ 'is-开': 展块 === '申请' }" @click="切块('申请')">
-          <span>申请</span>
-          <span v-if="待接数" class="界__角标">{{ 待接数 }}</span>
-        </button>
-        <button class="界__态标" :class="{ 'is-开': 展块 === '家园' }" @click="切块('家园')">
-          <span>家园</span>
-          <span v-if="仓库数" class="界__角标">{{ 仓库数 }}</span>
-        </button>
+         正文**不用 v-show 藏**: 藏了就是 display:none, 元素一失去布局滚动位置就没了
+         —— 玩家看诊回来会发现自己被弹回正文开头。让它一直有布局, 由上面那三页盖住它。
+
+         三个块仍然**都常驻挂载** (v-show 而不是 v-if) —— 见 spec §9.1:
+         「盯住日期」挂在 ApplyPanel 里, 改成 v-if 会让它静默死掉, 掷骰和申请列表
+         永远不再更新, 而且不报错。 -->
+    <main class="界__台">
+      <div ref="文区" class="界__文">
+        <template v-if="正文">
+          <p v-for="(段, 序) in 段落" :key="序">{{ 段 }}</p>
+          <span v-if="生成中" class="界__笔">▍</span>
+        </template>
+        <p v-else class="界__空">{{ 生成中 ? '正在写……' : '（这一楼没有正文）' }}</p>
       </div>
 
-      <!-- 三个块**都常驻挂载**, 只切 v-show —— 见 spec §9.1。
-           「盯住日期」挂在 ApplyPanel 里, 改成 v-if 会让它静默死掉。 -->
-      <div v-show="展块 === '诊所'" class="界__态体"><ClinicPanel /></div>
-      <div v-show="展块 === '申请'" class="界__态体"><ApplyPanel /></div>
-      <div v-show="展块 === '家园'" class="界__态体"><HomePanel @门="展块 = null" /></div>
-    </section>
+      <div v-show="展块 === '诊所'" class="界__页"><ClinicPanel /></div>
+      <div v-show="展块 === '申请'" class="界__页"><ApplyPanel /></div>
+      <div v-show="展块 === '家园'" class="界__页"><HomePanel @门="展块 = '剧情'" /></div>
+    </main>
+
+    <nav class="界__签">
+      <!-- 四个等宽标签 = 四个页面。点哪个整屏切哪个, 「剧情」就是正文本身。
+           永远有一页选中, 所以不存在「怎么回去」这个问题。 -->
+      <button class="界__态标" :class="{ 'is-开': 展块 === '剧情' }" @click="展块 = '剧情'">
+        <span>剧情</span>
+      </button>
+      <button class="界__态标" :class="{ 'is-开': 展块 === '诊所' }" @click="展块 = '诊所'">
+        <span>诊所</span>
+      </button>
+      <button class="界__态标" :class="{ 'is-开': 展块 === '申请' }" @click="展块 = '申请'">
+        <span>申请</span>
+        <span v-if="待接数" class="界__角标">{{ 待接数 }}</span>
+      </button>
+      <button class="界__态标" :class="{ 'is-开': 展块 === '家园' }" @click="展块 = '家园'">
+        <span>家园</span>
+        <span v-if="仓库数" class="界__角标">{{ 仓库数 }}</span>
+      </button>
+    </nav>
 
     <footer class="界__底">
       <button class="界__钮 is-主" :disabled="忙" @click="重说">
@@ -81,13 +94,14 @@ const 数据 = computed(() => store.data);
 
 const 原文 = ref('');
 const 生成中 = ref(false);
-/** 现在开着哪一块。null = 全折叠。互斥就是「只有一个值」这件事本身 (spec §9) */
-const 展块 = ref<'诊所' | '申请' | '家园' | null>(null);
-
-/** 点开着的那个 = 收起它; 点别的 = 换过去 */
-function 切块(块: '诊所' | '申请' | '家园') {
-  展块.value = 展块.value === 块 ? null : 块;
-}
+/**
+ * 现在开着哪页。**永远有一页** —— '剧情' 就是正文本身, 不是「什么都没开」。
+ *
+ * 早先这里有个 null 表示全折叠, 靠再点一次同一个标签来收起。那个模型下界面是
+ * 「正文 + 底下长出来的一块」: 标签条被顶上去, 正文被压掉一半, 而「怎么回去」
+ * 没有任何可见提示。一页一个标签之后这两件事都没了。
+ */
+const 展块 = ref<'剧情' | '诊所' | '申请' | '家园'>('剧情');
 const 看历史 = ref(false);
 const 忙 = ref(false);
 const 文区 = ref<HTMLElement | null>(null);
@@ -234,6 +248,17 @@ const 继续 = () => 跑('/continue await=true');
     font-size: 0.76em;
   }
 
+  /* 台子 = 正文 + 盖在它上面的三页。底下那三页是 absolute, 靠它定位 */
+  &__台 {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* 正文。**常驻有布局**, 不参与 v-show —— 见模板里那段注释:
+     藏成 display:none 会丢滚动位置, 看诊回来就被弹回开头 */
   &__文 {
     flex: 1;
     min-height: 0;
@@ -265,37 +290,41 @@ const 继续 = () => 跑('/continue await=true');
     font-size: 0.9em;
   }
 
-  &__态 {
-    flex: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-  }
-
-  /* 按钮排成一行。展开态靠 is-开 的底色认, 不再用箭头 —— 互斥的按钮更像
-     标签页, 一个上下箭头反而说不清它管的是哪一块 */
-  &__签 {
-    display: flex;
-  }
-
-  /* 展开体的上限。原来这个上限挂在「展开态」那个类名下的 .界__态体 上, 现在不需要了:
-     `v-show` 已经管了显不显示, 上限常驻即可。
-     **新加的是下面那三条上限** (max-height / overflow / overscroll); padding 原本就在
-     —— 基底里已有一条只写 padding 的 `&__态体`, 现在并进这一段。之所以要并: 每块自带
-     .界卡 的 margin, 左右得留一点免得贴边, 两份分开写早晚会不一致。 */
-  &__态体 {
-    padding: 0 12px 12px;
-    max-height: 46vh;
+  /* 盖在正文上的那三页。
+     不透明底是**必要**的: 它是「换了一页」, 不是「弹了个窗」, 底下不该透出正文。
+     底色跟 .界 那份一样 —— 页只盖住中间这一段, 上下分别是顶栏和标签条,
+     两段渐变各自从头开始, 接缝在 #10151c 上, 看不出来。
+     每块自带 .界卡 的 margin, 左右留一点免得贴边。 */
+  &__页 {
+    position: absolute;
+    inset: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    padding: 0 12px 12px;
+    background: linear-gradient(178deg, #10151c 0%, #0b0f14 100%);
+  }
+
+  /* 四个等宽标签 = 四个页面。位置固定在底部, 不再被展开的面板顶上去。
+     开着的那页靠 is-开 的底色认 —— 互斥的按钮更像标签页, 加箭头反而说不清它管哪一块 */
+  &__签 {
+    flex: none;
+    display: flex;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
   }
 
   &__态标 {
     display: flex;
     align-items: center;
-    gap: 8px;
+    /* 居中对齐 —— 四个标签里有两个带角标, 左对齐会让「申请」「家园」的文字
+       比另外两个偏一截, 一排看过去是歪的 */
+    justify-content: center;
+    gap: 7px;
     flex: 1;
     min-width: 0;
     min-height: 42px;
-    padding: 0 14px;
+    /* 标签从三个变四个, 每个窄了 1/4。14px 的左右内边距在 320px 宽的机器上
+       正好把带角标的那个挤出去, 所以收到 10px */
+    padding: 0 10px;
     border: none;
     background: rgba(255, 255, 255, 0.02);
     color: #8e99a6;
@@ -321,8 +350,10 @@ const 继续 = () => 跑('/continue await=true');
     }
   }
 
+  /* 不再 `margin-left: auto` —— 那是在左对齐的标签里把角标甩到右边的写法。
+     现在整行居中, 角标跟着文字走, 由 gap 隔开就对了 */
   &__角标 {
-    margin-left: auto;
+    flex: none;
     padding: 1px 8px;
     border-radius: 999px;
     background: rgba(127, 227, 255, 0.14);
@@ -389,6 +420,20 @@ const 继续 = () => 跑('/continue await=true');
         border-color: rgba(127, 227, 255, 0.3);
         color: #a8ecff;
       }
+    }
+  }
+
+  /* 窄屏(320~420px 那段)四个标签会把「申请」的角标挤出去。整条收一档 */
+  @media (max-width: 420px) {
+    &__态标 {
+      padding: 0 5px;
+      gap: 4px;
+      font-size: 0.78em;
+      letter-spacing: 0.02em;
+    }
+
+    &__角标 {
+      padding: 1px 5px;
     }
   }
 }
