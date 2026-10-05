@@ -63,6 +63,58 @@
               }
             }
           }
+        },
+        "报纸供稿": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "日期": {
+                "default": "",
+                "type": "string"
+              },
+              "标题": {
+                "default": "",
+                "type": "string"
+              },
+              "正文": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "报纸投稿": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "日期": {
+                "default": "",
+                "type": "string"
+              },
+              "版面": {
+                "default": "广告",
+                "type": "string"
+              },
+              "标题": {
+                "default": "",
+                "type": "string"
+              },
+              "正文": {
+                "default": "",
+                "type": "string"
+              },
+              "署名": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },

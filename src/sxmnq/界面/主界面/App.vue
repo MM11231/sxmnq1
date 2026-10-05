@@ -59,6 +59,7 @@
       <div v-show="展块 === '诊所'" class="界__页"><ClinicPanel /></div>
       <div v-show="展块 === '申请'" class="界__页"><ApplyPanel /></div>
       <div v-show="展块 === '家园'" class="界__页"><HomePanel @门="展块 = '剧情'" /></div>
+      <div v-show="展块 === '世界'" class="界__页"><WorldPanel /></div>
     </main>
 
     <nav class="界__签">
@@ -77,6 +78,11 @@
       <button class="界__态标" :class="{ 'is-开': 展块 === '家园' }" @click="展块 = '家园'">
         <span>家园</span>
         <span v-if="仓库数" class="界__角标">{{ 仓库数 }}</span>
+      </button>
+      <!-- 五个标签是 320px 宽的极限了。 @media (max-width: 420px) 那一档又收了一次,
+           但**够不够是量出来的, 不是算出来的** —— 见 浏览器验.mjs。 -->
+      <button class="界__态标" :class="{ 'is-开': 展块 === '世界' }" @click="展块 = '世界'">
+        <span>世界</span>
       </button>
     </nav>
 
@@ -111,6 +117,7 @@
 import ClinicPanel from '../诊所/App.vue';
 import ApplyPanel from '../申请/App.vue';
 import HomePanel from '../家园/App.vue';
+import WorldPanel from '../世界/App.vue';
 import { 算仓库 } from '../../家园/家具';
 import { useDataStore } from '../共用/数据';
 import { use顶栏高 } from '../共用/量顶栏';
@@ -128,7 +135,7 @@ const 生成中 = ref(false);
  * 「正文 + 底下长出来的一块」: 标签条被顶上去, 正文被压掉一半, 而「怎么回去」
  * 没有任何可见提示。一页一个标签之后这两件事都没了。
  */
-const 展块 = ref<'剧情' | '诊所' | '申请' | '家园'>('剧情');
+const 展块 = ref<'剧情' | '诊所' | '申请' | '家园' | '世界'>('剧情');
 const 看历史 = ref(false);
 const 忙 = ref(false);
 const 文区 = ref<HTMLElement | null>(null);
@@ -440,7 +447,7 @@ const 继续 = () => 跑('/continue await=true');
     container-type: size;
   }
 
-  /* 四个等宽标签 = 四个页面。位置固定在底部, 不再被展开的面板顶上去。
+  /* 五个等宽标签 = 五个页面。位置固定在底部, 不再被展开的面板顶上去。
      开着的那页靠 is-开 的底色认 —— 互斥的按钮更像标签页, 加箭头反而说不清它管哪一块 */
   &__签 {
     flex: none;
@@ -458,8 +465,10 @@ const 继续 = () => 跑('/continue await=true');
     flex: 1;
     min-width: 0;
     min-height: 42px;
-    /* 标签从三个变四个, 每个窄了 1/4。14px 的左右内边距在 320px 宽的机器上
-       正好把带角标的那个挤出去, 所以收到 10px */
+    /* 每加一个标签, 每个就窄一档, 而 320px 宽的机器上本来就已经贴着边了:
+       三个 → 四个时内边距从 14px 收到 10px, 四个 → 五个时由下面那条
+       @media (max-width: 420px) 再收到 5px。**再要加第六个就得先量一遍**,
+       照这个收法会先把「申请」的角标挤出去。 */
     padding: 0 10px;
     border: none;
     background: rgba(255, 255, 255, 0.02);
