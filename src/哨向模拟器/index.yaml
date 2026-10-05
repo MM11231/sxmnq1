@@ -264,4 +264,75 @@
               名 => eventOn(tavern_events[名], 清楼),
             );
             setInterval(清楼, 500);
+
+            // ── 自检: 界面挂不上来的时候, 把真正的原因说出来 ──────────────────────
+            //
+            // 界面只长在第 0 楼, 而酒馆助手的「渲染深度」(扩展 → 酒馆助手 → 渲染 → 渲染深度)
+            // 只渲染**离末尾最近**的 N 楼。它给的区间是
+            //     range(depth === 0 ? 第一楼的 mesid : max(第一楼的 mesid, 总楼数 - depth), 总楼数)
+            // (JS-Slash-Runner: src/store/iframe_runtimes/message.ts 的 calcToRender)
+            //
+            // 而上面的「清楼」只删 DOM, chat 数组一条没少 —— 所以聊天每多一来回, 第 0 楼
+            // 离末尾就远一格; 总楼数一旦超过深度, 它就掉出那个区间: 酒馆助手不再给它建 iframe,
+            // 转而把那个代码块折成一颗「显示前端代码块」按钮(use_collapse_code_block.ts)。
+            // 界面整个消失, 而且一声不吭 —— 玩家只会看到一团 <body>…</body> 的文本。
+            //
+            // 所以这里不是「等多久没出来就报」, 而是直接把那一刻的读数算出来: 深度是 0、
+            // 或者还没长到会掉出区间的长度时, 一个字都不说, 免得把别的原因(酒馆助手没开、
+            // dev 服务器没通)误报成这一条。
+            let 报过了 = false; // 同一场故障只报一次, 界面回来之后自动解除
+            let 宽限到 = 0; // 第一次算出「它轮不到渲染」的时刻 + 5 秒, 防一手渲染还没跑完
+
+            // 抄 calcToRender 的判据: 下面的「清楼」保证 DOM 第一楼就是第 0 楼,
+            // 所以 min_showed_message_id 恒为 0, 第 0 楼轮得到渲染 ⇔ 区间起点 <= 0。
+            function 轮得到渲染() {
+              const c = SillyTavern.getContext();
+              const r = c.extensionSettings?.tavern_helper?.render ?? {};
+              const 深 = Number(r.depth ?? 0);
+              const 总 = c.chat?.length ?? 0;
+              const 可见 = (c.chat ?? []).filter(楼 => !楼.is_system).length;
+              if (深 === 0) return true; // 0 = 渲染所有楼层
+              return r.depth_ignore_hidden ? 可见 <= 深 : 总 <= 深;
+            }
+
+            function 查渲染() {
+              const 楼 = $('#chat > .mes[mesid="0"]');
+              if (楼.length === 0 || 楼.find('iframe').length > 0) {
+                报过了 = false; // 界面回来了, 下次再坏可以再报
+                宽限到 = 0;
+                return;
+              }
+
+              let 说得清 = false;
+              try {
+                说得清 = !轮得到渲染();
+              } catch {
+                宽限到 = 0;
+                return; // 读不到设置就别猜, 宁可不说
+              }
+              if (!说得清) {
+                宽限到 = 0;
+                return;
+              }
+              if (报过了) return;
+              if (宽限到 === 0) {
+                宽限到 = Date.now() + 5000;
+                return; // 再等五秒, 万一它只是还没渲染完
+              }
+              if (Date.now() < 宽限到) return;
+
+              报过了 = true;
+              const 深 = Number(SillyTavern.getContext().extensionSettings?.tavern_helper?.render?.depth ?? 0);
+              const 总 = SillyTavern.getContext().chat?.length ?? 0;
+              console.info('[界面] 第 0 楼没被渲染: 渲染深度 ' + 深 + ', 总楼数 ' + 总);
+              toastr.error(
+                `酒馆助手的「渲染深度」现在是 ${深}，只渲染最近 ${深} 楼；这张卡的界面钉在第 1 楼，` +
+                  `而现在已经有 ${总} 楼，所以第 1 楼根本没被渲染。把它改成 0 界面就回来了：` +
+                  '扩展 → 酒馆助手 → 渲染 → 渲染深度。',
+                '界面没挂上来',
+                { timeOut: 0, extendedTimeOut: 0, closeButton: true },
+              );
+            }
+
+            setInterval(查渲染, 1000);
           });
