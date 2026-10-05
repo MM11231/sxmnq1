@@ -1,14 +1,19 @@
 # yaml-language-server: $schema=https://testingcf.jsdelivr.net/gh/StageDog/tavern_sync/dist/schema/character.zh.json
 # 这个配置文件仅作为使用同步脚本的提示. 同步脚本并不是必须使用, 但可以让你的角色卡完全做到自动更新, 具体请参考: https://stagedog.github.io/青空莉/工具经验/实时编写角色卡、世界书或预设/
 #
-# ⚠ 开发期本地加载: 下面有两处 URL 指向 http://localhost:5501 (本地静态服务器,
-#   工作目录就是打包后的 dist/, 所以地址里不带 dist/ 这一段)。原因是要改一行就在
-#   酒馆里看到效果, 而 jsDelivr 有 CDN 缓存, 推送后要等很久才生效, 没法迭代。
-#   发布前把这两处换回 https://testingcf.jsdelivr.net/gh/MM11231/sxmnq1/dist/
+# ⚠ 下面两处 URL **就是发布地址**, 永远指向公开 CDN, 不要再改回本地。
+#   本地开发要"改一行就在酒馆里看到效果", 靠的是 tools/装卡.mjs: 它导入前会把这两处
+#   临时改写成 http://localhost:5501 (tools/serve_dist.mjs 那台静态服务器, 根目录就是
+#   dist/, 所以地址里不带 dist/ 这一段), 而且只改**导入用的那份副本** —— 打包产物一个
+#   字节都不动。于是 "src = 发布地址" 永远成立。
+#   以前是把 localhost 直接写在 yaml 里、发布前手动换回来, 忘一次别人拿到的卡就是白屏;
+#   2026-10-05 就是这么坏掉的。现在这个开关只存在于装卡.mjs 里, 忘不掉。
+#   为什么是 @main: 不带版本的地址解析到"最新 tag", 实测卡在 v0.0.9 (89034 字节, 旧的);
+#   @main 才是当前构建 (163306 字节)。CI 每次推送会重建 dist 并自动打新 tag。
 #   (曾经写的是 .../MM11231/bata/ —— 那个仓库名已经没了, jsDelivr 会 404。
 #    仓库迁到公开的 sxmnq1 之后这里忘了跟着改, 别照旧值填。)
-#     · 正则 [界面]主界面  → .../sxmnq/index.html
-#     · 脚本库 变量结构   → .../哨向模拟器/脚本/变量结构/index.js
+#     · 正则 [界面]主界面  → .../sxmnq1@main/dist/sxmnq/index.html
+#     · 脚本库 变量结构   → .../sxmnq1@main/dist/哨向模拟器/脚本/变量结构/index.js
 #
 # 前端在 src/sxmnq/ 里, 不在这张卡的目录下 —— 它是个能独立编译成单文件 HTML 的项目,
 # 卡这边只留世界书、正则和脚本(见 src/sxmnq/index.ts)。
@@ -177,7 +182,7 @@
         ```
         <body>
         <script>
-        $('body').load('http://localhost:5501/sxmnq/index.html')
+        $('body').load('https://testingcf.jsdelivr.net/gh/MM11231/sxmnq1@main/dist/sxmnq/index.html')
         </script>
         </body>
         ```
@@ -202,7 +207,7 @@
         启用: true
         类型: 脚本
         内容: |-
-          import 'http://localhost:5501/哨向模拟器/脚本/变量结构/index.js';
+          import 'https://testingcf.jsdelivr.net/gh/MM11231/sxmnq1@main/dist/哨向模拟器/脚本/变量结构/index.js';
 
       # 脚本 iframe 里的 `$` 就是**酒馆主页面**的 jQuery(酒馆助手在 predefine 里做的
       # `window.$ = window.parent.$`), 所以这里能直接操作主页面的 DOM。
