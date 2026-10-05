@@ -302,6 +302,12 @@ const 继续 = () => 跑('/continue await=true');
     overscroll-behavior: contain;
     padding: 0 12px 12px;
     background: linear-gradient(178deg, #10151c 0%, #0b0f14 100%);
+
+    /* 让每一页成为**尺寸查询容器** —— 家园页那张九宫格要按「这一页有多高」定边长,
+       用的就是这里的 cq 单位 (见 九宫格.vue 的 .宫)。
+       用 size 而不是 inline-size: 要量的是**高**, inline-size 量不到高。
+       contain 不影响这一页自己: 它的尺寸来自 inset: 0, 本来就不看内容。 */
+    container-type: size;
   }
 
   /* 四个等宽标签 = 四个页面。位置固定在底部, 不再被展开的面板顶上去。
