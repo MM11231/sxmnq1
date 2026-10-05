@@ -115,6 +115,28 @@
               }
             }
           }
+        },
+        "占卜": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "已抽于": {
+              "default": "",
+              "type": "string"
+            },
+            "牌": {
+              "default": "",
+              "type": "string"
+            },
+            "逆位": {
+              "default": false,
+              "type": "boolean"
+            },
+            "解读": {
+              "default": "",
+              "type": "string"
+            }
+          }
         }
       }
     },
