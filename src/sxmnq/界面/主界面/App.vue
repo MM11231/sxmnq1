@@ -21,10 +21,37 @@
          「盯住日期」挂在 ApplyPanel 里, 改成 v-if 会让它静默死掉, 掷骰和申请列表
          永远不再更新, 而且不报错。 -->
     <main class="界__台">
+      <!-- 正文区 = 这条消息切出来的所有块。只有一块默认摊开, 其余折成一行。
+           为什么要「全都留着、只折起来」而不是「抠出正文、其余丢掉」:
+           抠的判据一旦失手, 要么漏标签、要么把剧情整段丢掉, 而且都不报错。
+           折起来最坏也只是折错了哪一块 —— 玩家看得见, 点开就有。见 正文适配.ts 的头部注释。 -->
       <div ref="文区" class="界__文">
-        <template v-if="正文">
-          <p v-for="(段, 序) in 段落" :key="序">{{ 段 }}</p>
-          <span v-if="生成中" class="界__笔">▍</span>
+        <template v-if="块们.length">
+          <template v-for="(块, 序) in 块们" :key="序">
+            <!-- 摊开那块渲染的是 `片段` 不是 `内容` —— 双语预设把原文和译文逐行写在同一块里,
+                 渲染 `内容` 会把两轨一起糊出来。见 正文适配.ts 的「三个层级」。 -->
+            <template v-if="块.正文">
+              <template v-for="(片, 内序) in 块.片段" :key="内序">
+                <p v-if="片.类 === '文'">{{ 片.文 }}</p>
+                <details v-else class="界__折 is-原文">
+                  <summary class="界__折头">
+                    <!-- 认不出语种时 片.语言 就是「原文」, 别写成「原文（原文）」。 -->
+                    <span class="界__折名">原文{{ 片.语言 === '原文' ? '' : `（${片.语言}）` }}</span>
+                    <span class="界__折数">{{ 片.文.length }} 字</span>
+                  </summary>
+                  <div class="界__折体">{{ 片.文 }}</div>
+                </details>
+              </template>
+              <span v-if="生成中" class="界__笔">▍</span>
+            </template>
+            <details v-else class="界__折">
+              <summary class="界__折头">
+                <span class="界__折名">{{ 块.标题 }}</span>
+                <span class="界__折数">{{ 块.字数 }} 字</span>
+              </summary>
+              <div class="界__折体">{{ 块.内容 }}</div>
+            </details>
+          </template>
         </template>
         <p v-else class="界__空">{{ 生成中 ? '正在写……' : '（这一楼没有正文）' }}</p>
       </div>
@@ -87,7 +114,7 @@ import HomePanel from '../家园/App.vue';
 import { 算仓库 } from '../../家园/家具';
 import { useDataStore } from '../共用/数据';
 import { use顶栏高 } from '../共用/量顶栏';
-import { 取正文, 读最新原文 } from './正文';
+import { 切块, 取正文, 读适配, 读最新原文 } from './正文';
 
 const store = useDataStore();
 const 数据 = computed(() => store.data);
@@ -109,15 +136,15 @@ const 文区 = ref<HTMLElement | null>(null);
 // 让开酒馆工具栏的活交给公共件了 —— 标题页和创建页也要让, 三页共用一份。
 const 顶栏高 = use顶栏高();
 
-const 正文 = computed(() => 取正文(原文.value));
+// 适配表**开在这里读一次**就够了。正文每 500ms 跟着流式生成重切一遍, 每遍都去读一次
+// 全局变量纯属浪费; 反正玩家改了配置也是要刷页面才生效的。
+const 适配 = 读适配();
 
-// 空行分段。AI 有时用单换行断句, 所以不把每行都当一段。
-const 段落 = computed(() =>
-  正文.value
-    .split(/\n\s*\n/)
-    .map(段 => 段.trim())
-    .filter(Boolean),
-);
+const 块们 = computed(() => 切块(原文.value, 适配));
+
+// （原来这里有个 `分段()`: 把摊开那块按空行切成 <p>。它并进了 正文适配.ts 的 切片段() ——
+//   双语预设要求分段之外再分「中文轨/外语轨」, 两件事得在同一遍里做完, 不然先分段再判外语
+//   就要把每段的行重新拼回去, 白白绕一圈。）
 
 // 注意末尾的 `.value()`: lodash 链没它的话返回的是包装对象, 恒为真, 角标会永远显示。
 const 待接数 = computed(
@@ -133,9 +160,11 @@ const 仓库数 = computed(() => 算仓库(数据.value.诊所.家具).length);
 
 const 历史 = computed(() => {
   try {
+    // 适配表读一次就够 —— 下面每条消息都要用它, 每条都去读一遍全局变量纯属浪费。
+    const 适配 = 读适配();
     return getChatMessages('0-{{last}}')
       .filter(条 => 条.role !== 'system')
-      .map(条 => ({ 号: 条.message_id, 角色: 条.role, 文: 取正文(条.message) }))
+      .map(条 => ({ 号: 条.message_id, 角色: 条.role, 文: 取正文(条.message, 适配) }))
       .filter(条 => 条.文);
   } catch {
     return [];
@@ -275,6 +304,107 @@ const 继续 = () => 跑('/continue await=true');
         margin-bottom: 0;
       }
     }
+  }
+
+  /* 折叠块 —— 预设的思维链、选项、摘要这些。默认收成一行, 点开才看。
+     为什么不索性丢掉: 判据失手时"丢掉"是**不报错**的静默失败, 玩家只会觉得剧情凭空少了一截;
+     折起来最坏也只是折错了哪一块, 内容一直都在。 */
+  &__折 {
+    margin: 0 0 1em;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.025);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    &[open] {
+      background: rgba(255, 255, 255, 0.045);
+
+      /* 展开时把小三角转 90 度 */
+      > summary::before {
+        transform: rotate(90deg);
+      }
+    }
+
+    /* 行内的「原文」折叠条 —— 双语预设那条外语轨。
+       比整块的折叠**更轻**: 一屏会出现二三十条, 用整块那样的边框和底色会把正文切成碎片。
+       所以底色不要、只留一条左边线, 并且上边距收一点, 让它贴住上面那句译文。 */
+    &.is-原文 {
+      margin: -0.4em 0 1em;
+      border: 0;
+      border-left: 2px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0;
+      background: none;
+
+      &[open] {
+        background: none;
+      }
+
+      > .界__折头 {
+        padding: 3px 10px;
+        font-size: 0.76em;
+      }
+
+      > .界__折体 {
+        padding: 0 10px 6px 20px;
+        font-size: 0.84em;
+      }
+    }
+  }
+
+  &__折头 {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 11px;
+    font-size: 0.82em;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    /* 干掉浏览器默认那个三角: 它的大小和位置各家不一样, 留着跟文字对不齐 */
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    /* 自己画一个, 用 currentColor 所以跟着状态色走 */
+    &::before {
+      content: '';
+      flex: none;
+      width: 0;
+      height: 0;
+      border-left: 4px solid currentColor;
+      border-top: 3.5px solid transparent;
+      border-bottom: 3.5px solid transparent;
+      transition: transform 0.15s ease;
+    }
+  }
+
+  &__折名 {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: #8e99a6;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__折数 {
+    flex: none;
+    color: #4d5866;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__折体 {
+    padding: 0 11px 10px 24px;
+    color: #6f7a87;
+    font-size: 0.88em;
+    line-height: 1.65;
+    /* 折叠块里是原样的文本, 换行得留住 */
+    white-space: pre-wrap;
+    word-break: break-word;
   }
 
   &__笔 {
