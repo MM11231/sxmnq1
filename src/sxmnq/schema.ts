@@ -36,13 +36,42 @@ const 档案形状 = {
   战损来源: z.string().prefault(''),
 };
 
+/** 世界页「近期事件」一条。都是文本, 没有数值 —— 那是 AI 的文笔活。 */
+const 近期事件形状 = z
+  .object({
+    名称: z.string().prefault(''),
+    状态: z.string().prefault(''),
+    说明: z.string().prefault(''),
+  })
+  .prefault({});
+
 export const Schema = z.object({
   世界: z
     .object({
       日期: z.string().prefault(''),
       时段: z.string().prefault(''),
       地点: z.string().prefault(''),
+
+      // ★ 2026-10-05 扩的一层, 只为「世界是活的」这件事。
+      //
+      // 加这些字段**不只是为了显示**: 「变量列表」那条世界书整个是 format_message_variable
+      // 出来的, 字段一进 schema, AI 下一次就会看见它们、就会开始填。所以 schema 这边加了,
+      // 世界书/变量/变量更新规则.yaml 那边必须同步加规则 —— 少了那半边, 字段会一直空着,
+      // 界面上看起来只是「今天没什么可说的」, 一点都不报错。
+      时刻: z.string().prefault(''), // "07:30"
+      星期: z.string().prefault(''),
+      季节: z.string().prefault(''),
+      天气: z.string().prefault(''),
+      温度: z.string().prefault(''), // 体感, 如「偏冷」。不是数字
+
+      /** 一句话, 世界正在发生的大事。不是主角的日常 (spec §2.1) */
+      世界主线: z.string().prefault(''),
+      /** 平行发生的事件。AI 用 append 追加, 这里只保留最近 5 条 */
+      近期事件: z.array(近期事件形状).prefault([]),
     })
+    // 截断放在这里而不是 z.array().transform() 上: 这个 .transform().prefault() 的组合
+    // 在 主角/诊所 上已经跑了一年多, 是验过的写法; 链在数组上的那种没验过。
+    .transform(世界 => ({ ...世界, 近期事件: 世界.近期事件.slice(-5) }))
     .prefault({}),
 
   主角: z

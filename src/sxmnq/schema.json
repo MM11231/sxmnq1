@@ -17,6 +17,52 @@
         "地点": {
           "default": "",
           "type": "string"
+        },
+        "时刻": {
+          "default": "",
+          "type": "string"
+        },
+        "星期": {
+          "default": "",
+          "type": "string"
+        },
+        "季节": {
+          "default": "",
+          "type": "string"
+        },
+        "天气": {
+          "default": "",
+          "type": "string"
+        },
+        "温度": {
+          "default": "",
+          "type": "string"
+        },
+        "世界主线": {
+          "default": "",
+          "type": "string"
+        },
+        "近期事件": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "名称": {
+                "default": "",
+                "type": "string"
+              },
+              "状态": {
+                "default": "",
+                "type": "string"
+              },
+              "说明": {
+                "default": "",
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },
