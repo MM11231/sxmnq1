@@ -243,6 +243,27 @@
           "default": "",
           "type": "string"
         },
+        "登场": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "姓名": {
+                "default": "",
+                "type": "string"
+              },
+              "战损来源": {
+                "default": "",
+                "type": "string"
+              },
+              "自创": {
+                "default": false,
+                "type": "boolean"
+              }
+            }
+          }
+        },
         "待登记": {
           "default": [],
           "type": "array",
