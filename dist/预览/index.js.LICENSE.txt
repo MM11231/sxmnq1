@@ -9,6 +9,12 @@
  * Date: 2026-01-18T00:20Z
  */
 
+/*!
+ * pinia v3.0.4
+ * (c) 2025 Eduardo San Martin Morote
+ * @license MIT
+ */
+
 /*! #__NO_SIDE_EFFECTS__ */
 
 /**
@@ -21,7 +27,13 @@
  */
 
 /**
-* @vue/shared v3.5.43
+* @vue/runtime-dom v3.5.44
+* (c) 2018-present Yuxi (Evan) You and Vue contributors
+* @license MIT
+**/
+
+/**
+* @vue/shared v3.5.44
 * (c) 2018-present Yuxi (Evan) You and Vue contributors
 * @license MIT
 **/
