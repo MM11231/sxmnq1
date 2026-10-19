@@ -7,9 +7,13 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "dump": "node dump_schema.ts",
+<<<<<<< HEAD
     "sync": "node tavern_sync.mjs",
     "build:white-tower": "node scripts/build-white-tower.mjs",
     "test:white-tower": "node tests/white-tower/check-npc-copy.mjs"
+=======
+    "sync": "node tavern_sync.mjs"
+>>>>>>> a5317b873d6a11e0ca2f71d53e45bc23e81faf2a
   },
   "browserslist": [
     "defaults and partially supports es6-module"
