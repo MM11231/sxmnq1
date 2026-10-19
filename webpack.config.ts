@@ -242,6 +242,12 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         {
           oneOf: [
             {
+              test: /\.svg$/,
+              type: 'asset/inline',
+              resourceQuery: { not: [/raw/, /url/] },
+              exclude: /node_modules/,
+            },
+            {
               test: /\.tsx?$/,
               loader: 'ts-loader',
               options: {

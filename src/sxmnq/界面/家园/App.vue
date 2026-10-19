@@ -184,7 +184,7 @@ function 收起这件() {
   }
 
   &__名 {
-    color: #eef3f8;
+    color: #e5d8b8;
     font-weight: 600;
     letter-spacing: 0.03em;
   }
@@ -225,9 +225,9 @@ function 收起这件() {
   padding: 13px 14px;
   border-radius: 13px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: linear-gradient(168deg, #161d27 0%, #0d1117 100%);
+  background: linear-gradient(168deg, #161d27 0%, #1c241f 100%);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
-  color: #d8dee6;
+  color: #ddd1b5;
   font-size: 13px;
 
   &__头 {
@@ -240,7 +240,7 @@ function 收起这件() {
 
   &__题 {
     flex: 1;
-    color: #eef3f8;
+    color: #e5d8b8;
     font-weight: 600;
   }
 
@@ -260,7 +260,7 @@ function 收起这件() {
     border: none;
     border-radius: 7px;
     background: rgba(255, 255, 255, 0.06);
-    color: #8e99a6;
+    color: #a6ab91;
     font-family: inherit;
     cursor: pointer;
   }
@@ -271,7 +271,7 @@ function 收起这件() {
     font-size: 0.9em;
 
     strong {
-      color: #a8ecff;
+      color: #e5d4a3;
     }
   }
 
@@ -281,7 +281,7 @@ function 收起这件() {
 
   &__标 {
     margin: 0 0 6px;
-    color: #6f7a87;
+    color: #96967e;
     font-size: 0.8em;
     font-weight: 500;
     letter-spacing: 0.08em;
@@ -300,7 +300,7 @@ function 收起这件() {
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.04);
-    color: #cfd7e0;
+    color: #c8c7af;
     font-family: inherit;
     font-size: 0.94em;
     text-align: left;
@@ -313,7 +313,7 @@ function 收起这件() {
     }
 
     &:not(:disabled):hover {
-      background: rgba(127, 227, 255, 0.13);
+      background: rgba(215, 195, 141, 0.13);
     }
   }
 

@@ -213,14 +213,14 @@ function 翻开() {
   }
 
   &__名 {
-    color: #eef3f8;
+    color: #e5d8b8;
     font-weight: 600;
     font-size: 1.06em;
     letter-spacing: 0.03em;
   }
 
   &__星 {
-    color: #7fe3ff;
+    color: #d7c38d;
     font-size: 0.82em;
     white-space: nowrap;
   }
@@ -246,11 +246,11 @@ function 翻开() {
       transition: width 0.45s ease;
 
       &.is-名声 {
-        background: linear-gradient(90deg, #4a7fa5, #7fe3ff);
+        background: linear-gradient(90deg, #8a7851, #d7c38d);
       }
 
       &.is-精神 {
-        background: linear-gradient(90deg, #6b5fa8, #b39ddb);
+        background: linear-gradient(90deg, #667454, #b2bc8b);
       }
     }
   }
@@ -282,7 +282,7 @@ function 翻开() {
   }
 
   &__设 {
-    color: #6f7a87;
+    color: #96967e;
     margin-left: auto;
   }
 
@@ -307,9 +307,9 @@ function 翻开() {
     gap: 10px;
     padding: 11px 14px;
     border-radius: 8px;
-    border: 1px solid rgba(198, 168, 255, 0.3);
-    background: linear-gradient(180deg, rgba(198, 168, 255, 0.13), rgba(198, 168, 255, 0.05));
-    color: #d9c9ff;
+    border: 1px solid rgba(178, 188, 139, 0.3);
+    background: linear-gradient(180deg, rgba(178, 188, 139, 0.13), rgba(178, 188, 139, 0.05));
+    color: #d3d9b0;
     font-family: inherit;
     cursor: pointer;
 
@@ -317,7 +317,7 @@ function 翻开() {
       opacity: 0.45;
       cursor: default;
       border-color: rgba(255, 255, 255, 0.09);
-      color: #6f7a87;
+      color: #96967e;
     }
   }
 
@@ -416,15 +416,15 @@ function 翻开() {
   }
 
   &__背 {
-    border: 1px solid rgba(198, 168, 255, 0.35);
+    border: 1px solid rgba(178, 188, 139, 0.35);
     background:
-      repeating-linear-gradient(45deg, rgba(198, 168, 255, 0.09) 0 5px, transparent 5px 10px),
-      linear-gradient(160deg, #1d2333, #131824);
+      repeating-linear-gradient(45deg, rgba(178, 188, 139, 0.09) 0 5px, transparent 5px 10px),
+      linear-gradient(160deg, #262d23, #171d1b);
   }
 
   &__纹 {
     font-size: 1.7em;
-    color: rgba(198, 168, 255, 0.6);
+    color: rgba(178, 188, 139, 0.6);
   }
 
   &__正 {

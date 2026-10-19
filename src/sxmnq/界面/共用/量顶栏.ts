@@ -15,8 +15,10 @@ export function use顶栏高() {
   const 顶栏高 = ref(0);
 
   function 量() {
+    if (document.fullscreenElement) { 顶栏高.value = 0; return; }
     try {
       const 父档 = window.parent.document;
+      if (父档.body.classList.contains('white-tower-fullscreen')) { 顶栏高.value = 0; return; }
       const 界顶 = frameElement ? frameElement.getBoundingClientRect().top : 0;
       for (const 选 of ['#top-bar', '#top-settings-holder']) {
         const 元 = 父档.querySelector(选);

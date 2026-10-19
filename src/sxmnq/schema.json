@@ -2,6 +2,273 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
+    "购物": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "背包": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/__schema0"
+              },
+              "名称": {
+                "$ref": "#/$defs/__schema1"
+              },
+              "图标": {
+                "$ref": "#/$defs/__schema2"
+              },
+              "描述": {
+                "$ref": "#/$defs/__schema3"
+              },
+              "价格": {
+                "$ref": "#/$defs/__schema4"
+              },
+              "店铺": {
+                "$ref": "#/$defs/__schema5"
+              },
+              "类型": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "恢复": {
+                "$ref": "#/$defs/__schema7"
+              },
+              "数量": {
+                "$ref": "#/$defs/__schema8"
+              }
+            },
+            "required": [
+              "id",
+              "名称",
+              "图标",
+              "描述",
+              "价格",
+              "店铺",
+              "类型"
+            ]
+          }
+        },
+        "定制": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "$ref": "#/$defs/__schema0"
+              },
+              "名称": {
+                "$ref": "#/$defs/__schema1"
+              },
+              "图标": {
+                "$ref": "#/$defs/__schema2"
+              },
+              "描述": {
+                "$ref": "#/$defs/__schema3"
+              },
+              "价格": {
+                "$ref": "#/$defs/__schema4"
+              },
+              "店铺": {
+                "$ref": "#/$defs/__schema5"
+              },
+              "类型": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "恢复": {
+                "$ref": "#/$defs/__schema7"
+              }
+            },
+            "required": [
+              "id",
+              "名称",
+              "图标",
+              "描述",
+              "价格",
+              "店铺",
+              "类型"
+            ]
+          }
+        },
+        "购物日": {
+          "default": 0,
+          "type": "number"
+        },
+        "逛过": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "赠礼日": {
+          "default": 0,
+          "type": "number"
+        },
+        "已赠礼": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "使用日": {
+          "default": 0,
+          "type": "number"
+        },
+        "已使用": {
+          "$ref": "#/$defs/__schema8"
+        },
+        "记录": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "创作": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "名气": {
+          "default": 0,
+          "type": "number"
+        },
+        "传播结算日": {
+          "default": 0,
+          "type": "number"
+        },
+        "作品": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema9"
+          }
+        },
+        "场景日": {
+          "default": 0,
+          "type": "number"
+        },
+        "场景名气": {
+          "default": 0,
+          "type": "number"
+        },
+        "场景作品": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema9"
+          }
+        }
+      }
+    },
+    "向导": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "等级": {
+          "default": "D",
+          "type": "string",
+          "enum": [
+            "D",
+            "C",
+            "B",
+            "A",
+            "S"
+          ]
+        },
+        "经验": {
+          "default": 0,
+          "type": "number"
+        },
+        "力量": {
+          "default": 10,
+          "type": "number"
+        },
+        "精神": {
+          "default": 10,
+          "type": "number"
+        },
+        "学识": {
+          "default": 10,
+          "type": "number"
+        },
+        "魅力": {
+          "default": 10,
+          "type": "number"
+        },
+        "已通关": {
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "日程": {
+      "default": {},
+      "type": "object",
+      "properties": {
+        "序章已读": {
+          "default": false,
+          "type": "boolean"
+        },
+        "历法版本": {
+          "default": 0,
+          "type": "number"
+        },
+        "历法偏移": {
+          "default": 0,
+          "type": "number"
+        },
+        "天数": {
+          "default": 1,
+          "type": "number"
+        },
+        "时段": {
+          "default": 0,
+          "type": "number"
+        },
+        "起始日期": {
+          "default": "",
+          "type": "string"
+        },
+        "已接诊": {
+          "default": 0,
+          "type": "number"
+        },
+        "本日经验": {
+          "default": 0,
+          "type": "number"
+        },
+        "活动记录": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "上日结算": {
+          "default": "",
+          "type": "string"
+        },
+        "考核目标": {
+          "default": "",
+          "type": "string"
+        },
+        "考核阶段": {
+          "default": 0,
+          "type": "number"
+        },
+        "偶遇": {
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
     "世界": {
       "default": {},
       "type": "object",
@@ -33,6 +300,275 @@
         "天气": {
           "default": "",
           "type": "string"
+        },
+        "生活": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "社交": {
+              "default": {},
+              "type": "object",
+              "properties": {
+                "检查日": {
+                  "default": 0,
+                  "type": "number"
+                },
+                "今日邀约": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "天数": {
+                          "type": "number"
+                        },
+                        "姓名": {
+                          "type": "string"
+                        },
+                        "地点id": {
+                          "type": "string"
+                        },
+                        "地点": {
+                          "type": "string"
+                        },
+                        "主题": {
+                          "type": "string"
+                        },
+                        "正文": {
+                          "type": "string"
+                        },
+                        "最早时段": {
+                          "type": "number"
+                        },
+                        "状态": {
+                          "type": "string",
+                          "enum": [
+                            "待回应",
+                            "已接受",
+                            "已婉拒",
+                            "已完成",
+                            "已过期"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "天数",
+                        "姓名",
+                        "地点id",
+                        "地点",
+                        "主题",
+                        "正文",
+                        "最早时段",
+                        "状态"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "邀约记录": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "姓名": {
+                        "type": "string"
+                      },
+                      "天数": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "姓名",
+                      "天数"
+                    ]
+                  }
+                },
+                "偶遇日": {
+                  "default": 0,
+                  "type": "number"
+                },
+                "偶遇记录": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "姓名": {
+                        "type": "string"
+                      },
+                      "天数": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "姓名",
+                      "天数"
+                    ]
+                  }
+                },
+                "待偶遇": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "姓名": {
+                          "type": "string"
+                        },
+                        "天数": {
+                          "type": "number"
+                        },
+                        "地点": {
+                          "type": "string"
+                        },
+                        "正文": {
+                          "type": "string"
+                        },
+                        "前置行动": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "姓名",
+                        "天数",
+                        "地点",
+                        "正文",
+                        "前置行动"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "探索": {
+              "default": {},
+              "type": "object",
+              "properties": {
+                "触发日": {
+                  "default": 0,
+                  "type": "number"
+                },
+                "最近": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "天数": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "天数"
+                    ]
+                  }
+                },
+                "节庆足迹": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "待处理": {
+                  "default": null,
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "天数": {
+                          "type": "number"
+                        },
+                        "地点": {
+                          "type": "string"
+                        },
+                        "地点id": {
+                          "type": "string"
+                        },
+                        "前置行动": {
+                          "type": "string"
+                        },
+                        "节庆键": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "天数",
+                        "地点",
+                        "地点id",
+                        "前置行动",
+                        "节庆键"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              }
+            },
+            "更新日": {
+              "default": 0,
+              "type": "number"
+            },
+            "节日": {
+              "default": "",
+              "type": "string"
+            },
+            "城内消息": {
+              "default": "",
+              "type": "string"
+            },
+            "遭遇记录": {
+              "default": [],
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "日期": {
+                    "type": "string"
+                  },
+                  "地点": {
+                    "type": "string"
+                  },
+                  "标题": {
+                    "type": "string"
+                  },
+                  "正文": {
+                    "type": "string"
+                  },
+                  "结果": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "日期",
+                  "地点",
+                  "标题",
+                  "正文",
+                  "结果"
+                ]
+              }
+            }
+          }
         },
         "温度": {
           "default": "",
@@ -157,10 +693,11 @@
           ]
         },
         "路线": {
-          "default": "常规",
+          "default": "白塔向导路线",
           "type": "string",
           "enum": [
-            "常规"
+            "诊所线",
+            "白塔向导路线"
           ]
         },
         "已创建": {
@@ -176,7 +713,7 @@
           "type": "number"
         },
         "金钱": {
-          "default": 0,
+          "default": 500,
           "type": "number"
         }
       }
@@ -243,81 +780,70 @@
           "default": "",
           "type": "string"
         },
-        "登场": {
-          "default": [],
-          "type": "array",
-          "items": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
+        "人物文案": {
+          "default": {},
+          "type": "object",
+          "properties": {
+            "日期": {
+              "default": "",
+              "type": "string"
+            },
+            "状态": {
+              "default": "沿用",
+              "type": "string",
+              "enum": [
+                "沿用",
+                "待生成",
+                "生成中",
+                "失败",
+                "完成"
+              ]
+            },
+            "候选": {
+              "default": [],
+              "type": "array",
+              "items": {
                 "type": "object",
                 "properties": {
-                  "姓名": {
-                    "default": "",
+                  "原名": {
                     "type": "string"
                   },
-                  "战损来源": {
-                    "default": "",
+                  "编号": {
                     "type": "string"
                   },
-                  "自创": {
-                    "default": false,
+                  "字数": {
+                    "type": "number"
+                  },
+                  "中式": {
                     "type": "boolean"
                   }
-                }
+                },
+                "required": [
+                  "原名",
+                  "编号",
+                  "字数",
+                  "中式"
+                ]
               }
-            ]
-          }
-        },
-        "待登记": {
-          "default": [],
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "等级": {
-                "$ref": "#/$defs/__schema0"
-              },
-              "污染度": {
-                "$ref": "#/$defs/__schema1"
-              },
-              "诊金": {
-                "$ref": "#/$defs/__schema2"
-              },
-              "年龄": {
-                "$ref": "#/$defs/__schema3"
-              },
-              "地域": {
-                "$ref": "#/$defs/__schema4"
-              },
-              "精神体": {
-                "$ref": "#/$defs/__schema5"
-              },
-              "特征": {
-                "$ref": "#/$defs/__schema6"
-              },
-              "A面": {
-                "$ref": "#/$defs/__schema7"
-              },
-              "B面": {
-                "$ref": "#/$defs/__schema8"
-              },
-              "战损来源": {
-                "$ref": "#/$defs/__schema9"
-              },
-              "姓名": {
-                "default": "",
-                "type": "string"
-              },
-              "字数": {
-                "default": 3,
-                "type": "number"
-              },
-              "中式": {
-                "default": true,
-                "type": "boolean"
+            },
+            "错误": {
+              "default": "",
+              "type": "string"
+            },
+            "请求": {
+              "default": "",
+              "type": "string"
+            },
+            "开始": {
+              "default": 0,
+              "type": "number"
+            },
+            "最近": {
+              "default": [],
+              "maxItems": 40,
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/__schema10"
               }
             }
           }
@@ -333,43 +859,41 @@
             "type": "object",
             "properties": {
               "等级": {
-                "$ref": "#/$defs/__schema0"
+                "$ref": "#/$defs/__schema11"
               },
               "污染度": {
-                "$ref": "#/$defs/__schema1"
+                "$ref": "#/$defs/__schema12"
               },
               "诊金": {
-                "$ref": "#/$defs/__schema2"
+                "$ref": "#/$defs/__schema13"
               },
               "年龄": {
-                "$ref": "#/$defs/__schema3"
+                "$ref": "#/$defs/__schema14"
               },
               "地域": {
-                "$ref": "#/$defs/__schema4"
+                "$ref": "#/$defs/__schema15"
               },
               "精神体": {
-                "$ref": "#/$defs/__schema5"
+                "$ref": "#/$defs/__schema16"
               },
               "特征": {
-                "$ref": "#/$defs/__schema6"
+                "$ref": "#/$defs/__schema17"
+              },
+              "形象": {
+                "$ref": "#/$defs/__schema18"
               },
               "A面": {
-                "$ref": "#/$defs/__schema7"
+                "$ref": "#/$defs/__schema19"
               },
               "B面": {
-                "$ref": "#/$defs/__schema8"
+                "$ref": "#/$defs/__schema20"
               },
               "战损来源": {
-                "$ref": "#/$defs/__schema9"
+                "$ref": "#/$defs/__schema21"
               },
               "状态": {
                 "default": "待接",
-                "type": "string",
-                "enum": [
-                  "待接",
-                  "已接",
-                  "已婉拒"
-                ]
+                "type": "string"
               }
             }
           }
@@ -387,34 +911,37 @@
         "type": "object",
         "properties": {
           "等级": {
-            "$ref": "#/$defs/__schema0"
+            "$ref": "#/$defs/__schema11"
           },
           "污染度": {
-            "$ref": "#/$defs/__schema1"
+            "$ref": "#/$defs/__schema12"
           },
           "诊金": {
-            "$ref": "#/$defs/__schema2"
+            "$ref": "#/$defs/__schema13"
           },
           "年龄": {
-            "$ref": "#/$defs/__schema3"
+            "$ref": "#/$defs/__schema14"
           },
           "地域": {
-            "$ref": "#/$defs/__schema4"
+            "$ref": "#/$defs/__schema15"
           },
           "精神体": {
-            "$ref": "#/$defs/__schema5"
+            "$ref": "#/$defs/__schema16"
           },
           "特征": {
-            "$ref": "#/$defs/__schema6"
+            "$ref": "#/$defs/__schema17"
+          },
+          "形象": {
+            "$ref": "#/$defs/__schema18"
           },
           "A面": {
-            "$ref": "#/$defs/__schema7"
+            "$ref": "#/$defs/__schema19"
           },
           "B面": {
-            "$ref": "#/$defs/__schema8"
+            "$ref": "#/$defs/__schema20"
           },
           "战损来源": {
-            "$ref": "#/$defs/__schema9"
+            "$ref": "#/$defs/__schema21"
           },
           "信赖": {
             "default": 0,
@@ -443,6 +970,102 @@
   },
   "$defs": {
     "__schema0": {
+      "type": "string"
+    },
+    "__schema1": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "__schema2": {
+      "type": "string",
+      "maxLength": 24
+    },
+    "__schema3": {
+      "type": "string",
+      "maxLength": 140
+    },
+    "__schema4": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 1000
+    },
+    "__schema5": {
+      "type": "string"
+    },
+    "__schema6": {
+      "type": "string",
+      "enum": [
+        "礼物",
+        "补给"
+      ]
+    },
+    "__schema7": {
+      "default": 0,
+      "type": "number",
+      "minimum": 0,
+      "maximum": 60
+    },
+    "__schema8": {
+      "default": 0,
+      "type": "number"
+    },
+    "__schema9": {
+      "type": "object",
+      "properties": {
+        "标题": {
+          "default": "",
+          "type": "string"
+        },
+        "笔名": {
+          "default": "匿名",
+          "type": "string"
+        },
+        "类型": {
+          "default": "小说",
+          "type": "string",
+          "enum": [
+            "小说",
+            "随笔"
+          ]
+        },
+        "名气": {
+          "default": 0,
+          "type": "number"
+        },
+        "期数": {
+          "default": 0,
+          "type": "number"
+        },
+        "首刊日": {
+          "default": 1,
+          "type": "number"
+        },
+        "最近刊登日": {
+          "default": 1,
+          "type": "number"
+        },
+        "最近日期": {
+          "default": "",
+          "type": "string"
+        }
+      }
+    },
+    "__schema10": {
+      "type": "object",
+      "properties": {
+        "姓名": {
+          "type": "string"
+        },
+        "伤情": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "姓名",
+        "伤情"
+      ]
+    },
+    "__schema11": {
       "default": "D",
       "type": "string",
       "enum": [
@@ -453,26 +1076,30 @@
         "S"
       ]
     },
-    "__schema1": {
+    "__schema12": {
       "default": 0,
       "type": "number"
     },
-    "__schema2": {
+    "__schema13": {
       "default": 0,
       "type": "number"
     },
-    "__schema3": {
+    "__schema14": {
       "default": 25,
       "type": "number"
     },
-    "__schema4": {
+    "__schema15": {
       "default": "",
       "type": "string"
     },
-    "__schema5": {
+    "__schema16": {
       "default": {},
       "type": "object",
       "properties": {
+        "名称": {
+          "default": "",
+          "type": "string"
+        },
         "纲": {
           "default": "",
           "type": "string"
@@ -495,22 +1122,77 @@
         }
       }
     },
-    "__schema6": {
+    "__schema17": {
       "default": [],
       "type": "array",
       "items": {
         "type": "string"
       }
     },
-    "__schema7": {
+    "__schema18": {
+      "type": "object",
+      "properties": {
+        "版本": {
+          "type": "number",
+          "const": 1
+        },
+        "肤色": {
+          "type": "string"
+        },
+        "发色": {
+          "type": "string"
+        },
+        "发型": {
+          "type": "string"
+        },
+        "瞳色": {
+          "type": "string"
+        },
+        "体态": {
+          "type": "string"
+        },
+        "亚种": {
+          "type": "string"
+        },
+        "亚种特征": {
+          "type": "string"
+        },
+        "辨识特征": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "气息": {
+          "type": "string"
+        },
+        "相处细节": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "版本",
+        "肤色",
+        "发色",
+        "发型",
+        "瞳色",
+        "体态",
+        "亚种",
+        "亚种特征",
+        "辨识特征",
+        "气息",
+        "相处细节"
+      ]
+    },
+    "__schema19": {
       "default": "",
       "type": "string"
     },
-    "__schema8": {
+    "__schema20": {
       "default": "",
       "type": "string"
     },
-    "__schema9": {
+    "__schema21": {
       "default": "",
       "type": "string"
     }

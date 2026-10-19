@@ -76,7 +76,7 @@ const 类名: Record<格类, string> = {
     border-radius: 7px;
     border: 1px solid rgba(255, 255, 255, 0.09);
     background: rgba(255, 255, 255, 0.035);
-    color: #cfd7e0;
+    color: #c8c7af;
     font-family: inherit;
     font-size: 0.8em;
     line-height: 1.25;
@@ -103,7 +103,7 @@ const 类名: Record<格类, string> = {
   }
 
   &__副 {
-    color: #6f7a87;
+    color: #96967e;
     font-size: 0.82em;
     white-space: nowrap;
   }
@@ -129,8 +129,8 @@ const 类名: Record<格类, string> = {
   /* 床 = 蓝, 自由 = 绿, 门 = 黄, 房间 = 卡片样式 (spec §4.1)。
      颜色落在边框 + 约 10% 透明度的底色上 —— 九格全铺满会太吵。 */
   &__格.is-bed {
-    border-color: rgba(127, 227, 255, 0.45);
-    background: rgba(127, 227, 255, 0.1);
+    border-color: rgba(215, 195, 141, 0.45);
+    background: rgba(215, 195, 141, 0.1);
   }
 
   &__格.is-free {
@@ -147,7 +147,7 @@ const 类名: Record<格类, string> = {
   &__格.is-room {
     border-color: rgba(255, 255, 255, 0.12);
     background: rgba(255, 255, 255, 0.045);
-    color: #eef3f8;
+    color: #e5d8b8;
     font-weight: 600;
   }
 }

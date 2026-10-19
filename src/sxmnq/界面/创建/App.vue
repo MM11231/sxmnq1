@@ -33,9 +33,18 @@
             </template>
 
             <template v-else-if="步 === '路线'">
-              <button v-for="项 in 路线表" :key="项.键" class="创__卡 is-开" @click="选路线(项)">
+              <!-- 和上面那张身份表同一个套路: 枚举收得住, 但没做的路先灰着。 -->
+              <button
+                v-for="项 in 开局路线"
+                :key="项.键"
+                class="创__卡"
+                :class="{ 'is-开': 项.开 }"
+                :aria-disabled="项.开 ? undefined : 'true'"
+                @click="选路线(项)"
+              >
                 <span class="创__卡名">{{ 项.名 }}</span>
                 <span class="创__卡介">{{ 项.介 }}</span>
+                <span v-if="!项.开" class="创__未">未开放</span>
               </button>
             </template>
 
@@ -74,12 +83,17 @@
 // 这里**只在最后一步写变量**, 前两步只记在内存里 —— 所以「‹ 返回」一路退回去改主意
 // 都是安全的, 不会中途落下半份脏数据。
 //
-// `身份` / `路线` 的取值必须和 schema.ts 里的 enum 一个字都不差。写错了不会报错:
+// 写进变量的取值必须和 schema.ts 里的 enum 一个字都不差。写错了不会报错:
 // MVU 的 store 拿到 safeParse 失败就**直接 return**, 变量就永远停在旧值上, 静默失效。
 // 而且 ts-loader 配的是 transpileOnly, 类型不对构建照样过。
 //
+// `路线` 那一份取值已经不在这儿了 —— 它在 `路线.ts`, 和 schema 的枚举同源,
+// 所以那一条线不可能再对不上。`身份表` 还写在这儿, 加哨兵时记得两边一起改。
+//
 // import 名必须是 ASCII —— Vue 模板编译器认不出非 ASCII 的标签名, 写成 `<身份卡 />`
 // 会被当纯文本渲染、绑定全丢, 而且只有生产构建才发作(见 主界面/App.vue 同一处注释)。
+import { 路线表, type 路线键 } from '../../路线';
+const 开局路线 = 路线表.filter(项 => 项.开);
 import { useDataStore } from '../共用/数据';
 import { use合窗 } from '../共用/合窗';
 import { use顶栏高 } from '../共用/量顶栏';
@@ -102,12 +116,12 @@ const 步文 = computed(
   () => ({ 身份: '第 一 步 · 你 是 谁', 路线: '第 二 步 · 走 哪 条 路', 命名: '第 三 步 · 给 它 起 个 名' })[步.value],
 );
 
-// 键必须与 schema 的 enum 一致, 见文件头。
+// 键必须与 schema 的 enum 一致, 见文件头。`路线表` 从 `路线.ts` 来, 不用在这儿维护。
 const 身份表 = [
   {
     键: '向导',
     名: '向导',
-    介: '精神疏导者。刚从向导学院毕业，继承了一间破诊所。',
+    介: '精神疏导者。刚从向导学院毕业，选择你的职业道路。',
     开: true,
   },
   {
@@ -118,14 +132,11 @@ const 身份表 = [
   },
 ] as const;
 
-const 路线表 = [{ 键: '常规', 名: '常规路线', 介: '从无名诊所开始。接单、疏导、攒名声。' }] as const;
-
 type 身份键 = (typeof 身份表)[number]['键'];
-type 路线键 = (typeof 路线表)[number]['键'];
 
 // 选不了的那个也留个默认值: 哨兵线开放那天, 这段代码一行都不用改。
 const 身份 = ref<身份键>('向导');
-const 路线 = ref<路线键>('常规');
+const 路线 = ref<路线键>('白塔向导路线');
 
 const 诊所名 = ref('');
 
@@ -151,8 +162,18 @@ function 选身份(项: (typeof 身份表)[number]) {
 }
 
 function 选路线(项: (typeof 路线表)[number]) {
+  if (!项.开) {
+    // 同 选身份: 灰按钮点下去没反应, 玩家会以为卡了, 而不是"这条路还没开"。
+    try {
+      toastr.info('这条路线暂未开放。', '未开放');
+    } catch {
+      // 不在酒馆里(开发期直接开 index.html)时没有 toastr, 忽略。
+    }
+    return;
+  }
   路线.value = 项.键;
-  步.value = '命名';
+  if (项.要命名) 步.value = '命名';
+  else 进入();
 }
 
 /**
@@ -165,7 +186,8 @@ function 进入() {
   数.主角.路线 = 路线.value;
   // 空着就退回 initvar 的默认。不写空串: 状态栏有 `|| '未命名的诊所'` 兜得住,
   // 但结算.ts 拼的元指令里会变成「诊所：｜…」, 空一块。
-  数.诊所.名称 = 诊所名.value.trim() || '无名诊所';
+  if (路线.value === '诊所线') 数.诊所.名称 = 诊所名.value.trim() || '无名诊所';
+  else { 数.世界.地点 = '白塔·治疗中心'; 数.主角.金钱 = 500; 数.主角.精神力 = 数.主角.精神力上限; }
   // 这一下之后, 路由就不再把玩家送回这儿了(见 入口/App.vue)。
   数.主角.已创建 = true;
   emit('完成');
@@ -177,14 +199,14 @@ function 进入() {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: linear-gradient(168deg, #131922 0%, #10151c 46%, #0a0e13 100%);
-  color: #d8dee6;
+  background: linear-gradient(168deg, #131922 0%, #252b23 46%, #0a0e13 100%);
+  color: #ddd1b5;
 
   &__晕 {
     position: absolute;
     inset: 0;
     pointer-events: none;
-    background: radial-gradient(58% 42% at 26% 14%, rgba(127, 227, 255, 0.07), transparent 70%);
+    background: radial-gradient(58% 42% at 26% 14%, rgba(215, 195, 141, 0.07), transparent 70%);
   }
 
   &__中 {
@@ -219,7 +241,7 @@ function 进入() {
     animation: th-rise 0.8s 0.1s ease-out both;
 
     span {
-      color: #8e99a6;
+      color: #a6ab91;
       font-size: 13px;
       letter-spacing: 0.3em;
       text-indent: 0.3em;
@@ -242,20 +264,20 @@ function 进入() {
     padding: 2px 6px 2px 0;
     border: 0;
     background: none;
-    color: #6f7a87;
+    color: #96967e;
     font-family: inherit;
     font-size: 12px;
     cursor: pointer;
     transition: color 0.18s ease;
 
     &:hover {
-      color: #a8ecff;
+      color: #e5d4a3;
     }
   }
 
   &__步文 {
     width: 100%;
-    color: #8e99a6;
+    color: #a6ab91;
     font-size: 12px;
     letter-spacing: 0.2em;
     text-indent: 0.2em;
@@ -293,9 +315,9 @@ function 进入() {
       cursor: pointer;
 
       &:hover {
-        border-color: rgba(127, 227, 255, 0.44);
-        background: rgba(127, 227, 255, 0.07);
-        box-shadow: 0 0 22px rgba(127, 227, 255, 0.1);
+        border-color: rgba(215, 195, 141, 0.44);
+        background: rgba(215, 195, 141, 0.07);
+        box-shadow: 0 0 22px rgba(215, 195, 141, 0.1);
       }
 
       &:active {
@@ -311,13 +333,13 @@ function 进入() {
   }
 
   &__卡名 {
-    color: #eef3f8;
+    color: #e5d8b8;
     font-size: 15px;
     letter-spacing: 0.14em;
   }
 
   &__卡介 {
-    color: #8e99a6;
+    color: #a6ab91;
     font-size: 12px;
     line-height: 1.6;
   }
@@ -326,7 +348,7 @@ function 进入() {
     position: absolute;
     right: 14px;
     top: 17px;
-    color: #6f7a87;
+    color: #96967e;
     font-size: 11px;
     letter-spacing: 0.1em;
   }
@@ -336,10 +358,10 @@ function 进入() {
     width: 100%;
     height: 46px;
     padding: 0 14px;
-    border: 1px solid rgba(127, 227, 255, 0.24);
+    border: 1px solid rgba(215, 195, 141, 0.24);
     border-radius: 10px;
     background: rgba(255, 255, 255, 0.03);
-    color: #eef3f8;
+    color: #e5d8b8;
     font-family: inherit;
     font-size: 15px;
     letter-spacing: 0.08em;
@@ -352,8 +374,8 @@ function 进入() {
 
     &:focus {
       outline: none;
-      border-color: rgba(127, 227, 255, 0.5);
-      background: rgba(127, 227, 255, 0.05);
+      border-color: rgba(215, 195, 141, 0.5);
+      background: rgba(215, 195, 141, 0.05);
     }
   }
 
@@ -365,7 +387,7 @@ function 进入() {
   }
 
   &__试标 {
-    color: #6f7a87;
+    color: #96967e;
     font-size: 11px;
     letter-spacing: 0.12em;
   }
@@ -382,7 +404,7 @@ function 进入() {
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 7px;
     background: rgba(255, 255, 255, 0.03);
-    color: #8e99a6;
+    color: #a6ab91;
     font-family: inherit;
     font-size: 12px;
     letter-spacing: 0.08em;
@@ -390,9 +412,9 @@ function 进入() {
     transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
 
     &:hover {
-      border-color: rgba(127, 227, 255, 0.4);
-      background: rgba(127, 227, 255, 0.09);
-      color: #a8ecff;
+      border-color: rgba(215, 195, 141, 0.4);
+      background: rgba(215, 195, 141, 0.09);
+      color: #e5d4a3;
     }
   }
 
@@ -403,9 +425,9 @@ function 进入() {
     width: 100%;
     min-height: 46px;
     padding: 0;
-    border: 1px solid rgba(127, 227, 255, 0.34);
+    border: 1px solid rgba(215, 195, 141, 0.34);
     border-radius: 10px;
-    background: rgba(127, 227, 255, 0.09);
+    background: rgba(215, 195, 141, 0.09);
     color: #cdf3ff;
     font-family: inherit;
     font-size: 15px;
@@ -428,9 +450,9 @@ function 进入() {
     }
 
     &:hover {
-      background: rgba(127, 227, 255, 0.16);
-      border-color: rgba(127, 227, 255, 0.52);
-      box-shadow: 0 0 24px rgba(127, 227, 255, 0.16);
+      background: rgba(215, 195, 141, 0.16);
+      border-color: rgba(215, 195, 141, 0.52);
+      box-shadow: 0 0 24px rgba(215, 195, 141, 0.16);
 
       &::after {
         left: 118%;

@@ -1,0 +1,65 @@
+import module,{createRequire} from 'node:module';
+import fs from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import assert from 'node:assert/strict';
+const require=createRequire(process.env.WHITE_TOWER_DEPENDENCIES ? path.join(process.env.WHITE_TOWER_DEPENDENCIES,'..','package.json') : path.resolve(import.meta.dirname,'../../package.json'));
+globalThis.z=require('zod').z;globalThis._=require('lodash');
+const modules=Object.fromEntries(['zod','lodash'].map(name=>[name,pathToFileURL(require.resolve(name)).href]));
+module.registerHooks({resolve(specifier,context,next){
+ if(modules[specifier])return next(modules[specifier],context);
+ if(specifier.startsWith('.')&&!path.extname(specifier)){for(const suffix of ['.ts','/index.ts'])try{return next(specifier+suffix,context);}catch{}}
+ return next(specifier,context);
+}});
+const root=path.resolve(import.meta.dirname,'../../src');
+const load=file=>import(pathToFileURL(path.join(root,file)));
+const {Schema}=await load('sxmnq/schema.ts');
+const {假变量}=await load('预览/假数据.ts');
+const {创建形象,读取形象,外貌描述,人物随机,亚种池}=await load('sxmnq/生成/形象.ts');
+const {掷一个}=await load('sxmnq/生成/生成.ts');
+const {跑一次}=await load('sxmnq/生成/流转.ts');
+const {应用结算,构建元指令}=await load('sxmnq/界面/状态栏/结算.ts');
+const species=new Set(),looks=new Set();let demis=0;
+for(let i=0;i<1000;i++){
+ const p=掷一个('B',new Set(),人物随机('npc-test-'+i));
+ const appearance=p.条目.形象,text=外貌描述(appearance);
+ assert.ok(p.条目.年龄>=18);
+ assert.equal(p.条目.特征.length>=1&&p.条目.特征.length<=2,true);
+ assert.ok(!/机油|硝烟|\/|\(|\)|或/.test(text+appearance.辨识特征.join('')));
+ if(appearance.亚种!=='人类'){
+  demis++;species.add(appearance.亚种);
+  const source=亚种池.find(s=>s.名称===appearance.亚种);
+  assert.ok(source.特征.includes(appearance.亚种特征));
+ }else assert.equal(appearance.亚种特征,'');
+ looks.add(text);assert.deepEqual(读取形象(p.姓名,p.条目),appearance);
+}
+assert.equal(species.size,10);assert.ok(demis>200&&demis<450);assert.ok(looks.size>980);
+const legacy={地域:'极北凛冬(军备重工): 冷色调毛发(银/白/灰)，机油或硝烟味。',特征:['兽耳/兽尾(亚人)','眼镜(金丝/黑框/半框/圆框)']};
+assert.deepEqual(创建形象('旧角色',legacy),创建形象('旧角色',structuredClone(legacy)));
+assert.notEqual(创建形象('旧角色',legacy).亚种,'人类');
+assert.equal(创建形象('旧人类',{...legacy,特征:['眼下痣']}).亚种,'人类');
+const saved=Schema.parse(假变量.stat_data),name=Object.keys(saved.哨兵)[0],old=structuredClone(saved.哨兵[name]);
+assert.ok(old.形象);assert.deepEqual(Schema.parse(JSON.parse(JSON.stringify(saved))),saved);
+saved.今日.申请列表[name]={...saved.今日.申请列表[Object.keys(saved.今日.申请列表)[0]],形象:创建形象('错误的新人',legacy)};
+assert.deepEqual(Schema.parse(saved).今日.申请列表[name].形象,old.形象);
+saved.哨兵[name].形象={bad:true};assert.ok(Schema.safeParse(saved).success);
+const migrated=Schema.parse(saved);assert.deepEqual(migrated.哨兵[name].特征,old.特征);assert.equal(migrated.哨兵[name].年龄,old.年龄);
+const today={已生成于:'',申请列表:{}};
+跑一次(today,'2026-10-15','B',{[name]:{...old,状态:'在诊',已治疗:2}},人物随机('return'));
+assert.deepEqual(today.申请列表[name].形象,old.形象);
+today.申请列表[name].形象.辨识特征.push('副本标记');assert.ok(!old.形象.辨识特征.includes('副本标记'));
+const newcomer=掷一个('B',new Set(),人物随机('treatment'));
+const patient={...newcomer.条目,姓名:newcomer.姓名,信赖:0,好感:0,基础诊金:100,$信赖:'',$好感:''};
+const context={路线:'白塔向导路线',世界:{日期:'2026-10-15',时段:'上午'},主角:{姓名:'测试',精神力:100,精神力上限:100},诊所:{名称:'',等级:'B',$称号:'',名声:0,床位:2},气氛:0,患者:patient};
+const result={线数:3,已完成:3,失误次数:0,失误日志:[],评级:'A',精神力消耗:3};
+const data=Schema.parse(假变量.stat_data);应用结算(data,context,result);
+assert.deepEqual(data.哨兵[patient.姓名].形象,patient.形象);
+let prompt=构建元指令(context,result);assert.ok(prompt.includes(外貌描述(patient.形象)));assert.ok(!prompt.includes(patient.形象.相处细节));
+context.患者.信赖=20;prompt=构建元指令(context,result);assert.ok(prompt.includes(patient.形象.相处细节));assert.ok(prompt.includes('不揭露B面'));
+context.患者.信赖=40;assert.ok(构建元指令(context,result).includes('可逐步表现更深的性格'));
+const script=fs.readFileSync(path.join(root,'哨向模拟器/脚本/变量结构/index.ts'),'utf8').replace(/^import .*;\r?\n/gm,'');
+let onUpdate;globalThis.registerMvuSchema=()=>{};globalThis.waitGlobalInitialized=async()=>{};globalThis.Mvu={events:{VARIABLE_UPDATE_ENDED:'done'}};globalThis.eventOn=(_,fn)=>{onUpdate=fn;};globalThis.$=fn=>fn();
+await new Function('Schema','读取形象',script+'\nreturn Promise.resolve();')(Schema,读取形象);await new Promise(r=>setTimeout(r,0));
+const previous={stat_data:Schema.parse(假变量.stat_data)},next=structuredClone(previous);next.stat_data.哨兵[name].形象=创建形象('改坏的角色',legacy);onUpdate(next,previous);
+assert.deepEqual(next.stat_data.哨兵[name].形象,previous.stat_data.哨兵[name].形象);
+console.log(JSON.stringify({passed:true,generated:1000,demihumans:demis,species:species.size,uniqueAppearances:looks.size,migration:true,returnVisits:true,treatmentPersistence:true,stagePrompts:true,mvuRetention:true}));

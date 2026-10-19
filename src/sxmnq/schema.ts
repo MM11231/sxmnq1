@@ -1,23 +1,34 @@
+import { 文案形状 } from './生成/文案';
+import { 社交形状 } from './养成/哨兵社交';
+import { 转换旧年历 } from './养成/年历';
+import { 探索形状 } from './养成/探索事件';
+import { 购物形状 } from './购物/schema';
+import { 创建形象 } from './生成/形象';
+import { 具体精神体 } from './生成/精神体';
 import { 好感分档, 信赖分档, 等级称号 } from './分档';
 import { 算气氛, 开局家具 } from './家园/家具';
 import { 大阿卡纳 } from './占卜/塔罗';
+import { 路线取值 } from './路线';
 
-/** 精神体的四项掷定值。具体物种是 AI 写的, 不进变量 */
+/** 精神体名称与分类一同保存，旧存档缺少名称时补齐。 */
 const 精神体形状 = z
   .object({
+    名称: z.string().prefault(''),
     纲: z.string().prefault(''),
     方向: z.string().prefault(''),
     栖息: z.string().prefault(''),
     体型: z.string().prefault(''),
     危险: z.string().prefault(''),
   })
+  .transform(data => ({ ...data, 名称: data.名称 || 具体精神体(data) }))
   .prefault({});
 
 /**
- * 一份哨兵档案。**待登记 / 申请列表 / 哨兵 三处共用这一个形状。**
+ * 一份哨兵档案。**申请列表 / 哨兵 两处共用这一个形状。**
  *
  * spec §8.5 说「三个结构的字段必须一致 —— 人是同一个对象在流转, 不重新生成」。
- * 靠这一处保证, 而不是靠三处手抄同一份字段表: 手抄的版本改一处忘两处,
+ * 那时第三个结构是 `待登记`, 2026-10-06「名单直出」把它删了, 所以现在只剩两处。
+ * 靠这一处保证, 而不是靠两处手抄同一份字段表: 手抄的版本改一处忘另一处,
  * 而漏掉的字段会被 zod **静默丢掉** —— 界面上看起来只是「这个人没精神体」。
  *
  * 每个字段都带 prefault。不是因为前端会漏写, 是因为 MVU 每次 parse 的是
@@ -32,6 +43,11 @@ const 档案形状 = {
   地域: z.string().prefault(''),
   精神体: 精神体形状,
   特征: z.array(z.string()).prefault([]),
+  形象: z.object({
+    版本: z.literal(1), 肤色: z.string(), 发色: z.string(), 发型: z.string(),
+    瞳色: z.string(), 体态: z.string(), 亚种: z.string(), 亚种特征: z.string(),
+    辨识特征: z.array(z.string()), 气息: z.string(), 相处细节: z.string(),
+  }).optional().catch(undefined),
   A面: z.string().prefault(''),
   B面: z.string().prefault(''),
   战损来源: z.string().prefault(''),
@@ -113,7 +129,43 @@ const 占卜形状 = z
   )
   .prefault({});
 
+const 作品形状 = z.object({
+  标题: z.string().prefault(''), 笔名: z.string().prefault('匿名'),
+  类型: z.enum(['小说', '随笔']).prefault('小说'),
+  名气: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(0),
+  期数: z.coerce.number().prefault(0), 首刊日: z.coerce.number().prefault(1),
+  最近刊登日: z.coerce.number().prefault(1), 最近日期: z.string().prefault(''),
+});
 export const Schema = z.object({
+  购物: 购物形状,
+  创作: z.object({
+    名气: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(0),
+    传播结算日: z.coerce.number().prefault(0),
+    作品: z.array(作品形状).prefault([]),
+    场景日: z.coerce.number().prefault(0),
+    场景名气: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(0),
+    场景作品: z.array(作品形状).prefault([]),
+  }).prefault({}),
+  向导: z.object({
+    等级: z.enum(['D','C','B','A','S']).prefault('D'),
+    经验: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(0),
+    力量: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(10),
+    精神: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(10),
+    学识: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(10),
+    魅力: z.coerce.number().transform(v => _.clamp(v, 0, 100)).prefault(10),
+    已通关: z.boolean().prefault(false),
+  }).prefault({}),
+  日程: z.object({
+    序章已读: z.boolean().prefault(false),
+    历法版本: z.coerce.number().prefault(0),
+    历法偏移: z.coerce.number().transform(Math.trunc).prefault(0),
+    天数: z.coerce.number().transform(v => Math.max(1, Math.floor(v))).prefault(1),
+    时段: z.coerce.number().transform(v => _.clamp(Math.floor(v), 0, 3)).prefault(0),
+    起始日期: z.string().prefault(''), 已接诊: z.coerce.number().prefault(0),
+    本日经验: z.coerce.number().prefault(0), 活动记录: z.array(z.string()).prefault([]),
+    上日结算: z.string().prefault(''), 考核目标: z.string().prefault(''),
+    考核阶段: z.coerce.number().prefault(0), 偶遇: z.string().prefault(''),
+  }).prefault({}),
   世界: z
     .object({
       日期: z.string().prefault(''),
@@ -130,6 +182,7 @@ export const Schema = z.object({
       星期: z.string().prefault(''),
       季节: z.string().prefault(''),
       天气: z.string().prefault(''),
+      生活: z.object({社交:社交形状,探索:探索形状,更新日:z.coerce.number().prefault(0),节日:z.string().prefault(''),城内消息:z.string().prefault(''),遭遇记录:z.array(z.object({日期:z.string(),地点:z.string(),标题:z.string(),正文:z.string(),结果:z.string()})).transform(v=>v.slice(-8)).prefault([])}).prefault({}),
       温度: z.string().prefault(''), // 体感, 如「偏冷」。不是数字
 
       /** 一句话, 世界正在发生的大事。不是主角的日常 (spec §2.1) */
@@ -169,8 +222,16 @@ export const Schema = z.object({
       // 「变量列表」那条世界书会把整份 stat_data 注入提示词 —— 选了什么是靠这个
       // 让 AI 知道的, 不是靠界面告诉它。
       身份: z.enum(['向导', '哨兵']).prefault('向导'),
-      // 现在是单值。以后开第二条线就往这个数组里加一个字符串, 别处不用动。
-      路线: z.enum(['常规']).prefault('常规'),
+      // 取值在 `路线.ts` —— 创建页渲染的卡片也从那儿读, 所以两边不可能对不上。
+      // 加一条新线往那个数组里加一个字符串就行, 这里一个字都不用动。
+      //
+      // `常规` 是 2026-10-08 改名前的老名字, 只当**别名**收: 那次改名把 `常规`
+      // 换成了 `诊所线`, 而老存档的变量里存的还是 `常规`。要是直接从枚举里删掉,
+      // safeParse 会整份失败 —— 而 MVU 拿到失败是直接 return 的, 玩家看到的是
+      // 「所有数字变回默认值」, 一条报错都没有。所以先归一再交给枚举去挑。
+      路线: z
+        .preprocess(值 => (值 === '常规' ? '诊所线' : 值), z.enum(路线取值))
+        .prefault('白塔向导路线'),
 
       // 开局创建走没走过。只在「进入白塔」那一下置 true, 之后没人再动它。
       //
@@ -184,7 +245,7 @@ export const Schema = z.object({
 
       精神力: z.coerce.number().prefault(0),
       精神力上限: z.coerce.number().prefault(100),
-      金钱: z.coerce.number().prefault(0),
+      金钱: z.coerce.number().prefault(500),
     })
     .transform(data => ({
       ...data,
@@ -245,73 +306,73 @@ export const Schema = z.object({
       //   没有这个戳就会一天掷好几批 (spec §8.4)。
       //   与 世界.日期 相等 = 今天已经掷过, 什么都不做。
       已生成于: z.string().prefault(''),
+      人物文案: 文案形状,
 
-      // AI 报到的口子：这一楼谁推门进来了。**这是 AI 唯一要动手的地方。**
+      // 今天门口排队的名单。**掷骰时前端直接产出这个 record** (生成.ts 的 掷一批),
+      // 姓名就是键 —— 所以键一定非空、一定唯一 (重名在起名那一侧就避开了)。
       //
-      // 它取代了「AI 回填 待登记[i].姓名」那套 —— 旧契约要求的是簿记动作,
-      // 而实测 AI 不做簿记 (它同一份 <UpdateVariable> 里正确 append 了
-      // 世界.近期事件, 却一条都没碰 待登记)。追加是叙事动作, 它本来就在做。
+      // ★ 2026-10-06「名单直出」删掉了原来那两条:
+      //   `待登记` (掷好了等人来的中间态) 与 `登场` (AI 报到的口子)。
+      //   它们撑的是同一样东西 —— 「谁进来由 AI 决定」那道闸门。方向反过来了:
+      //   名单现在是权威, 正文照名单写 (spec 2026-10-06-名单直出 §1)。
       //
-      // 前端按 FIFO 从 待登记 取最上面那张单子配给这里的人, 见 流转.ts 的 处理登场。
-      登场: z
-        .array(
-          // ★ 写歪也要兜住。歪一下的代价**不是**「这一条没收下」, 而是整份 stat_data
-          //   解析失败 —— util/mvu.ts 的 2 秒轮询与 watch 两处都是
-          //   `if (result.error) return`, 界面上只表现为「所有数字不再变」, 一条错都不报。
-          //   这正是本文件开头说的那种最怕的静默失败, 而 登场 比别的字段更容易踩:
-          //   它是 AI 每楼新写的**嵌套对象**, 而原来那个契约只是「回填一个姓名」。
-          //   跟 投稿形状 的 版面 用同一招: 放宽类型, 把判断挪进来。
-          z
-            .union([
-              // 歪法一 (最像的一种): 它以为这里只放名字, 写成 登场: ["沈砚"]。
-              // 那就在名字上收下 —— 丢掉这个人等于复活了这个子项目要修的 bug
-              // (正文里登场了, 列表里没有)。
-              z.string().transform(姓名 => ({ 姓名, 战损来源: '', 自创: false })),
-              z.object({
-                姓名: z.string().prefault(''),
-                战损来源: z.string().prefault(''),
-                // 罕见：这一楼的人明确不是申请单上的（玩家自己带进来的、AI 临时加的）。
-                // 缺省 false = 占用最上面那张单子。写错也不要紧 —— 顶多多用一张单子,
-                // 不会漏人。
-                自创: z.boolean().prefault(false),
-              }),
-            ])
-            // 歪法二: 真认不出的 (数字、null、数组本身) 退化成一条空姓名。
-            // 处理登场 本来就跳过空姓名 (流转.ts:167), 所以等于「这条没报到」,
-            // 而不是整份数据报废。关键是**只丢这一条**。
-            .catch({ 姓名: '', 战损来源: '', 自创: false }),
-        )
-        .prefault([]),
-
-      // 掷完、但还没露面的。**数组不是 record** —— 还没有 key。
-      // 界面上显示成「未到 · 01」。
-      //
-      // AI 只读这一块, 不写它 —— 名字写在 登场 里 (见上)。
-      // 但 姓名/字数/中式 三个字段**留着**: 字数/中式 仍然要用来给 AI 下命名指令,
-      // 姓名 是兼容回路的接口 (老世界书里 AI 还在回填它)。
-      待登记: z
-        .array(
-          z.object({
-            ...档案形状,
-            // 名字由 AI 写 (§8.2), 写完之后由 流转.ts 的 晋级已命名的 搬进 申请列表。
-            // 它必须在这里 —— 少了它, zod 每次 parse 都会把 AI 写的名字剥掉,
-            // 于是那些条目永远晋级不了, 而界面上什么都不报。
-            姓名: z.string().prefault(''),
-            // 这两项是给 AI 的指令, 不是给人看的属性
-            字数: z.coerce.number().prefault(3),
-            中式: z.boolean().prefault(true),
-          }),
-        )
-        .prefault([]),
-
-      // AI 命名后进来。以姓名为 key
+      // ★ 这个字段**每轮都会被注进提示词** (变量列表 是 format_message_variable
+      //   出来的), 所以 AI 每轮都看得见它 —— 这是下面 状态 要放宽的**理由**。
       申请列表: z
         .record(
           z.string().describe('哨兵姓名'),
           z
             .object({
               ...档案形状,
-              状态: z.enum(['待接', '已接', '已婉拒']).prefault('待接'),
+              // ★ 放宽类型, 把判断挪进 transform。原来这里是
+              //   `z.enum(['待接','已接','已婉拒']).prefault('待接')`, 而 enum
+              //   认不出就**整份 stat_data 解析失败**: util/mvu.ts 的 2 秒轮询
+              //   与 watch 两处都是 `if (result.error) return`, 界面上只表现为
+              //   「所有数字不再变」, 一条错都不报。
+              //
+              //   这个洞**一直开着**, 不是「将来才有的风险」: 旧世界书本来就指令 AI
+              //   写这个字段 (那句原话是「【你】主角在正文里明确把人打发走时, 把 状态
+              //   改成「已婉拒」」; 它已随本次改动从 变量更新规则.yaml 删掉)。
+              //   那时没炸, 只是因为被指令写的那个值
+              //   「已婉拒」**正好在 enum 里** —— 它要是写「婉拒」(少一个字) 就会炸。
+              //   所以 enum 不是理论风险, 是一个当时就开着的洞。
+              //
+              //   配套的那另一半在 spec §7: 新世界书改成「【你】不要写 状态」, 把洞的
+              //   来源撤掉。**那一处已经落地** —— 2026-10-06「名单直出」把 变量更新
+              //   规则.yaml 里那句「【你】主角在正文里明确把人打发走时，把 状态 改成
+              //   「已婉拒」」删掉了 (用原话指认它, 不写行号 —— 行号会漂; 上面「旧世界书
+              //   本来就指令 AI 写这个字段」那段引的也是同一句, 同样改用原话)。所以现在
+              //   是「**洞补上了, 来源也撤了**」。
+              //   而名单从此每轮进提示词, 它读得更勤、伸手改是迟早的 —— 改的时候带的
+              //   还是**它自己的用词**。放宽之后, 写歪只毁这一条的状态。
+              //
+              // ★ 用 `z.coerce.string()`, 而**不是** 投稿形状.版面 那个 `z.string()`。
+              //   这两处**不是同一招, 是各自按威胁模型选的**:
+              //   版面 防的是**玩家侧** (手改存档、以后改版面名), 玩家写出来的毕竟
+              //   还是个字符串; 状态 是**AI 每轮都可能写**的, 而 AI 的输出**不带
+              //   类型** —— 它可能写 null (想把这一格清掉)、写数字码 (照 等级 的
+              //   样子)、写布尔, 或者把整个对象/数组塞进来。
+              //   (`z.coerce.number()` 本文件里本来就用了 11 处: 污染度/诊金/年龄/
+              //   精神力/精神力上限/金钱/名声/氛围/信赖/好感/已治疗 —— coerce 也不是新招。)
+              //
+              // ★ coerce 买到的确切性质 (按实测收窄过口径, 分三段说):
+              //   ① **AI 正常输出与存档里会出现的值都没有失败路径** —— 字符串 /
+              //      数字 / 布尔 / null / 数组 / 普通对象, 一律落到三个合法状态之一
+              //      (schema.test.mjs 里钉住其中 5 种: null / 数字 / 布尔 / 数组 / 对象)。
+              //   ② 仍会让整份报废的一类, 但**非 JSON 可达**: `Object.create(null)`
+              //      与 `toString` 调用即抛的对象。AI 的输出与存档都到不了。
+              //   ③ **但还有一类是 JSON 可达的**: 自带 `toString` 且其值不可调用的
+              //      对象 (如 `JSON.parse('{"toString":1}')`)。`z.coerce.string()`
+              //      走 `String(v)` → ToPrimitive; 对象**自有** `toString` 而它不可
+              //      调用时, `String()` 抛 TypeError, zod 折成 invalid_type,
+              //      **整份失败的**。AI 正常写不出来, 存档被别的东西动过就会中。
+              //      要防它得上 `.catch()`, 本任务**不做**, 只把口径说准。
+              //   对照: 换成 `z.string()` 时上面那 5 种**每一种都会让整份 stat_data
+              //   报废** —— 正是本文件开头说的最怕的那种静默失败。
+              状态: z
+                .coerce.string()
+                .prefault('待接')
+                .transform(值 => (['待接', '已接', '已婉拒'].includes(值) ? 值 : '待接')),
             })
             .transform(data => ({ ...data, 污染度: _.clamp(data.污染度, 0, 100) })),
         )
@@ -345,5 +406,13 @@ export const Schema = z.object({
         }),
     )
     .prefault({}),
+}).transform(data => {
+  if (data.主角.路线 === '白塔向导路线') 转换旧年历(data);
+  // 同名的已接诊档案优先；旧档只补全缺少的外貌，不改变既有年龄、特征、关系。
+  for (const [姓名, 人] of Object.entries(data.哨兵)) 人.形象 ??= 创建形象(姓名, 人);
+  for (const [姓名, 人] of Object.entries(data.今日.申请列表)) {
+    人.形象 = _.cloneDeep(data.哨兵[姓名]?.形象 ?? 人.形象 ?? 创建形象(姓名, 人));
+  }
+  return data;
 });
 export type Schema = z.output<typeof Schema>;

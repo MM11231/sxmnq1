@@ -119,11 +119,12 @@ function 现有() {
 
 全局.createChatMessages = async (条: { role: string; message: string }[]) => {
   for (const 一 of 条) {
-    聊天.push({ message_id: 聊天.length, role: 一.role, message: 一.message });
+    聊天.splice(末楼.value + 1, 0, { message_id: 末楼.value + 1, role: 一.role, message: 一.message });
+    末楼.value++;
   }
   // 新楼层一进来, 「末楼」就得跟着走 —— 否则刚发的消息会被上面的 slice 挡在外面,
   // 表现成"指令发出去了但界面没反应"。
-  末楼.value = 聊天.length - 1;
+  聊天.forEach((一, 号) => { 一.message_id = 号; });
 };
 
 // ---------------------------------------------------------------- 事件
@@ -179,11 +180,19 @@ function 发事件(名: string, ...参: unknown[]) {
  */
 let 稿次 = 0;
 
-全局.triggerSlash = async () => {
+全局.triggerSlash = async (指令: string) => {
   发事件(全局.tavern_events.GENERATION_STARTED);
   await new Promise(完 => setTimeout(完, 450));
   const 有 = 现有();
-  有[有.length - 1].message = 备稿[稿次++ % 备稿.length];
+  const 文 = 备稿[稿次++ % 备稿.length];
+  if (/^\/trigger\b/.test(指令)) {
+    聊天.splice(末楼.value + 1, 0, { message_id: 末楼.value + 1, role: 'assistant', message: 文 });
+    末楼.value++;
+    聊天.forEach((一, 号) => { 一.message_id = 号; });
+  } else {
+    const 回复 = [...有].reverse().find(条 => 条.role === 'assistant');
+    if (回复) 回复.message = 文;
+  }
   发事件(全局.tavern_events.GENERATION_ENDED);
   return '';
 };

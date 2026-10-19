@@ -42,9 +42,9 @@ body {
   margin: 10px 0;
   padding: 12px 14px;
   border-radius: 12px;
-  background: linear-gradient(168deg, #141a23 0%, #0d1117 100%);
+  background: linear-gradient(168deg, #2c3328 0%, #1c241f 100%);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  color: #d8dee6;
+  color: #ddd1b5;
   font-size: 13px;
   line-height: 1.5;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
@@ -57,3 +57,14 @@ body {
     font-size: 12.5px;
   }
 }
+
+/* 白塔深色档案风格；仅调整视觉，不改变面板布局。 */
+body, button, input, textarea, select { font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif; }
+#app button { border-radius: 3px; }
+.界卡 { border-color: #66654c; border-radius: 3px; background: linear-gradient(150deg,#2b3327,#1b241e); color: #ddd1b5; }
+#app :is(.界__顶,.白__顶,.图__顶,.史__顶) { border-bottom-color: #706b4f; background: #282f25; }
+#app :is(.界__签,.界__底) { border-color: #706b4f; background: #20291f; }
+.申请块__罩 { background: #121a15; }
+
+/* 浏览器全屏时依然以父容器高度布局，不依赖 iframe 的自动测高。 */
+html:fullscreen,html:fullscreen body,html:fullscreen #app{width:100%;height:100%;margin:0;padding:0;background:#171d1b;}

@@ -5,6 +5,7 @@
          (报头上就印着), 天气是**诊所页**的事 (诊所页一直在显示 季节·天气·温度)。
          世界页按玩家说的「只留下新闻」, 所以这里只剩 世界主线 与 近期事件,
          摆在报纸上方 —— 它们是这一期的背景, 读报之前先知道外面怎么了。 -->
+    <section class="city-life"><header><h3>今日白塔</h3><span>{{ 数据.世界.季节 }} · {{ 数据.世界.天气 }} · {{ 数据.世界.温度 }}</span></header><p v-if="数据.世界.生活.节日" class="festival">✦ {{ 数据.世界.生活.节日 }}</p><p>{{ 数据.世界.生活.城内消息 }}</p><p class="life-hint">天气每天更新；行动可能触发遭遇，节日期间更容易遇到特别的事。</p><details v-if="数据.世界.生活.遭遇记录.length"><summary>最近的遭遇 · {{ 数据.世界.生活.遭遇记录.length }}</summary><article v-for="(件,i) in [...数据.世界.生活.遭遇记录].reverse()" :key="i"><h4>{{ 件.标题 }}</h4><small>{{ 件.日期 }} · {{ 件.地点 }} · {{ 件.结果 }}</small><p>{{ 件.正文 }}</p></article></details></section>
     <div class="世界__角">
       <p v-if="主线" class="世界__主线">{{ 主线 }}</p>
 
@@ -13,8 +14,8 @@
       <ul v-if="事件.length" class="世界__事件">
         <li v-for="(件, 序) in 事件" :key="序">
           <span class="世界__事件名">{{ 件.名称 }}</span>
-          <span v-if="件.状态" class="世界__事件态">{{ 件.状态 }}</span>
-          <span v-if="件.说明" class="世界__事件说">{{ 件.说明 }}</span>
+          <span v-if="件.状态" class="世界__事件态">· {{ 件.状态 }}</span>
+          <span v-if="件.说明" class="世界__事件说">· {{ 件.说明 }}</span>
         </li>
       </ul>
     </div>
@@ -74,9 +75,11 @@
         </summary>
 
         <div class="世界__折体">
-          <div class="世界__版们">
+          <label v-if="白塔线" class="世界__提"><input v-model="文学投稿" type="checkbox" @change="版面 = '趣闻'" /> 小说 / 随笔投稿</label>
+          <p v-if="白塔线 && 文学投稿" class="世界__提">使用同一标题和笔名可继续连载。留空署名即匿名；读者不会因此知道你是谁。</p>
+          <div v-if="!白塔线 || !文学投稿" class="世界__版们">
             <button
-              v-for="项 in 投稿版面次序"
+              v-for="项 in 可用版面"
               :key="项"
               class="世界__版钮"
               :class="{ 'is-选': 版面 === 项 }"
@@ -91,15 +94,17 @@
             落在<b>{{ 版面名[落在哪版[版面]] }}</b>版 · {{ 版面说明[版面] }}
           </p>
 
-          <input v-model="题" class="世界__入" maxlength="24" placeholder="标题" />
+          <select v-if="白塔线 && 文学投稿" v-model="作品类型" class="世界__入" aria-label="作品类型"><option value="小说">小说</option><option value="随笔">随笔</option></select>
+          <input v-model="题" class="世界__入" maxlength="24" placeholder="标题" aria-label="投稿标题" />
           <textarea
             v-model="文"
             class="世界__入 世界__区"
             rows="3"
             maxlength="180"
-            placeholder="写点什么。想登什么就写什么，不必替诊所说话。"
+            placeholder="写点什么。想登什么就写什么。"
+            aria-label="投稿正文"
           />
-          <input v-model="署" class="世界__入" maxlength="12" placeholder="署名" />
+          <input v-model="署" class="世界__入" maxlength="12" :placeholder="白塔线 ? '笔名（留空即匿名）' : '署名'" aria-label="投稿署名" />
 
           <div class="世界__交行">
             <button class="世界__交" :disabled="!买得起" @click="提交">
@@ -111,12 +116,14 @@
           </div>
         </div>
       </details>
+      <details v-if="白塔线 && 数据.创作.作品.length" class="世界__往"><summary>我的作品 · {{ 数据.创作.作品.length }} 部</summary><div v-for="作品 in 数据.创作.作品" :key="作品.标题 + 作品.笔名" class="世界__往条"><span>《{{ 作品.标题 }}》 · {{ 作品.笔名 }} · 已刊 {{ 作品.期数 }} 期</span><button class="世界__版钮" @click="续写(作品)">继续刊登</button></div></details>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useDataStore } from '../共用/数据';
+import { 登记作品, type 作品 } from '../../创作/作品';
 import { 出一期, 今天投过 } from '../../报纸/装配';
 // 版面名 住在 池子.ts (它描述的是报纸有哪几版), 投稿.ts 只管买版面这件事 ——
 // 两边都叫「版面」但一个是报纸的, 一个是价目表的。归错文件的话 ts-loader 的
@@ -139,7 +146,9 @@ import { 加名声 } from '../../等级';
 const store = useDataStore();
 const 数据 = computed(() => store.data);
 
-const 等级 = computed(() => 数据.value.诊所.等级);
+const 白塔线 = computed(() => 数据.value.主角.路线 === '白塔向导路线');
+const 等级 = computed(() => 白塔线.value ? 数据.value.向导.等级 : 数据.value.诊所.等级);
+const 可用版面 = computed(() => 投稿版面次序.filter(项 => !白塔线.value || 项 !== '宣传诊所'));
 
 const 主线 = computed(() => 数据.value.世界.世界主线);
 const 事件 = computed(() => 数据.value.世界.近期事件.filter(件 => 件.名称 || 件.说明));
@@ -174,14 +183,21 @@ const 今投过 = computed(() => 今天投过(数据.value.世界.报纸投稿, 
 // ── 投稿表单 ────────────────────────────────────────────────────────
 
 const 版面 = ref<投稿版面>('宣传诊所');
+watchEffect(() => { if (白塔线.value && 版面.value === '宣传诊所') 版面.value = '广告'; });
 const 题 = ref('');
 const 文 = ref('');
 const 署 = ref('');
+const 文学投稿 = ref(false);
+const 作品类型 = ref<'小说' | '随笔'>('小说');
+watch(白塔线, value => { if (value) 署.value = '匿名'; }, { immediate: true });
+function 续写(作品: 作品) {
+  文学投稿.value = true; 版面.value = '趣闻'; 作品类型.value = 作品.类型; 题.value = 作品.标题; 署.value = 作品.笔名;
+}
 
 // 署名默认是主角自己的名字。用一个 watch 播种而不是 ref 初值: store 是异步跟着
 // 最新一楼走的, 组件挂载那一刻 主角.姓名 很可能还是空的, 写进 ref 初值就再也补不上了。
 watchEffect(() => {
-  if (!署.value) 署.value = 数据.value.主角.姓名 ?? '';
+  if (!白塔线.value && !署.value) 署.value = 数据.value.主角.姓名 ?? '';
 });
 
 const 价 = computed(() => 算版面费(版面.value, 等级.value));
@@ -206,6 +222,10 @@ function 提交() {
   }
 
   const 花 = 价.value;
+  if (白塔线.value && 文学投稿.value) {
+    try { 登记作品(数据.value.创作, { 标题: 题.value, 笔名: 署.value, 类型: 作品类型.value, 天数: 数据.value.日程.天数, 日期: 数据.value.世界.日期 }); }
+    catch (error) { toastr.warning(String(error), '未刊登'); return; }
+  }
   数据.value.主角.金钱 -= 花;
   // 稿子照原样存进去, 连署名一起 —— 界面上要显示「你投的」和是谁写的。
   数据.value.世界.报纸投稿.push({
@@ -213,13 +233,13 @@ function 提交() {
     版面: 版面.value,
     标题: 题.value.trim(),
     正文: 文.value.trim(),
-    署名: 署.value.trim(),
+    署名: 署.value.trim() || (白塔线.value ? '匿名' : ''),
   });
 
   // 只有「宣传诊所」加名声, 其余版面纯沉浸 (spec §2.3)。进位那一套在 加名声 里,
   // 与治疗共用。判据是**买的那一档**而不是它落在哪一版 —— 宣传诊所和广告都落在
   // 分类广告版, 靠版面判的话两档就分不开了 (这正是改版时要解决的问题)。
-  if (版面.value === '宣传诊所') 加名声(数据.value.诊所, 宣传名声);
+  if (!白塔线.value && 版面.value === '宣传诊所') 加名声(数据.value.诊所, 宣传名声);
 
   题.value = '';
   文.value = '';
@@ -237,7 +257,7 @@ function 提交() {
 
   &__主线 {
     margin: 0;
-    color: #cfd7e0;
+    color: #c8c7af;
     font-size: 0.9em;
     line-height: 1.6;
   }
@@ -363,8 +383,8 @@ function 提交() {
   &__闻.is-投稿 {
     margin: 0 -6px 11px;
     padding: 7px 6px 7px 9px;
-    border-left: 2px solid rgba(127, 227, 255, 0.45);
-    background: rgba(127, 227, 255, 0.05);
+    border-left: 2px solid rgba(215, 195, 141, 0.45);
+    background: rgba(215, 195, 141, 0.05);
 
     .世界__题 {
       color: #cfeeff;
@@ -379,8 +399,8 @@ function 提交() {
     margin-left: 6px;
     padding: 1px 5px;
     border-radius: 3px;
-    background: rgba(127, 227, 255, 0.16);
-    color: #a8ecff;
+    background: rgba(215, 195, 141, 0.16);
+    color: #e5d4a3;
     font-family: system-ui, sans-serif;
     font-size: 0.68em;
     font-weight: 400;
@@ -444,7 +464,7 @@ function 提交() {
     padding: 9px 11px;
     border-radius: 7px;
     background: rgba(255, 255, 255, 0.03);
-    color: #6f7a87;
+    color: #96967e;
     font-size: 0.82em;
   }
 
@@ -463,7 +483,7 @@ function 提交() {
     align-items: center;
     gap: 9px;
     padding: 10px 12px;
-    color: #b6c0cb;
+    color: #b8baa4;
     font-size: 0.86em;
     cursor: pointer;
     list-style: none;
@@ -502,15 +522,15 @@ function 提交() {
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.09);
     background: rgba(255, 255, 255, 0.03);
-    color: #8e99a6;
+    color: #a6ab91;
     font-family: inherit;
     font-size: 0.82em;
     cursor: pointer;
 
     &.is-选 {
-      border-color: rgba(127, 227, 255, 0.36);
-      background: rgba(127, 227, 255, 0.12);
-      color: #a8ecff;
+      border-color: rgba(215, 195, 141, 0.36);
+      background: rgba(215, 195, 141, 0.12);
+      color: #e5d4a3;
     }
   }
 
@@ -526,11 +546,11 @@ function 提交() {
 
   &__提 {
     margin: 9px 0 8px;
-    color: #6f7a87;
+    color: #96967e;
     font-size: 0.78em;
 
     b {
-      color: #8e99a6;
+      color: #a6ab91;
       font-weight: 600;
     }
   }
@@ -543,7 +563,7 @@ function 提交() {
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.09);
     background: rgba(0, 0, 0, 0.22);
-    color: #d8dee6;
+    color: #ddd1b5;
     font-family: inherit;
     font-size: 0.84em;
     line-height: 1.6;
@@ -555,7 +575,7 @@ function 提交() {
 
     &:focus {
       outline: none;
-      border-color: rgba(127, 227, 255, 0.35);
+      border-color: rgba(215, 195, 141, 0.35);
     }
   }
 
@@ -575,9 +595,9 @@ function 提交() {
     flex: none;
     padding: 9px 14px;
     border-radius: 7px;
-    border: 1px solid rgba(127, 227, 255, 0.34);
-    background: rgba(127, 227, 255, 0.14);
-    color: #a8ecff;
+    border: 1px solid rgba(215, 195, 141, 0.34);
+    background: rgba(215, 195, 141, 0.14);
+    color: #e5d4a3;
     font-family: inherit;
     font-size: 0.86em;
     cursor: pointer;
@@ -587,7 +607,7 @@ function 提交() {
       cursor: default;
       border-color: rgba(255, 255, 255, 0.09);
       background: rgba(255, 255, 255, 0.04);
-      color: #6f7a87;
+      color: #96967e;
     }
   }
 
@@ -600,4 +620,6 @@ function 提交() {
 
 /* 占卜的样式 (占卜入口 + 翻牌那两层) 随功能一起搬去 诊所/App.vue 了。
    这一版的世界页只有三块: 主线条、报纸、投稿, 样式也在上面那三段里。 */
+.世界.界卡{font-size:17px;color:#e8e4d7;line-height:1.9;padding:20px 24px}.世界 .世界__事件 li{display:block;font-size:16px;line-height:1.9}.世界 .世界__事件说,.世界 .世界__事件态{display:inline;flex:none;margin:0;color:#c2c9b6}.世界 .世界__主线,.世界 .世界__文{font-size:17px;line-height:2;color:#e3e4d8}.世界 .世界__题{font-size:20px;line-height:1.7}.世界 .世界__版名{font-size:17px}.世界 .世界__报日,.世界 .世界__署,.世界 .世界__提,.世界 .世界__往头,.世界 .世界__折头,.世界 .世界__入{font-size:15px}.世界 .世界__报名{font-size:28px}.世界 .世界__报{padding:20px}@media(max-width:600px){.世界.界卡{padding:16px}.世界 .世界__报{padding:14px}.世界 .世界__题{font-size:19px}.世界 .世界__报名{font-size:25px}}
+.city-life{border-bottom:1px solid #b4b18750;padding:0 0 20px;margin-bottom:22px}.city-life header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}.city-life h3{font-size:23px;font-weight:400;margin:0}.city-life header span,.city-life small,.life-hint{font-size:14px;color:#bfc6b3}.city-life p{font-size:17px;line-height:1.9}.city-life .festival{color:#ecd18a}.city-life summary{cursor:pointer;font-size:16px}.city-life article{padding:14px 0;border-bottom:1px solid #929a782b}.city-life h4{margin:0 0 8px;font-size:18px}
 </style>

@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
   height: 100%;
   min-height: 0;
   background: linear-gradient(170deg, #12171f 0%, #0a0d13 100%);
-  color: #d8dee6;
+  color: #ddd1b5;
   font-size: 14px;
   overflow: hidden;
   user-select: none;
@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
   }
 
   &__名 {
-    color: #eef3f8;
+    color: #e5d8b8;
     font-weight: 600;
   }
 
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
     }
 
     &.is-耗 {
-      color: #7fe3ff;
+      color: #d7c38d;
       min-width: 5.4em;
       text-align: right;
     }
@@ -317,9 +317,9 @@ onBeforeUnmount(() => {
       transform 0.32s ease;
 
     &.is-亮 {
-      stroke: #7fe3ff;
+      stroke: #d7c38d;
       stroke-width: 5;
-      filter: drop-shadow(0 0 6px rgba(127, 227, 255, 0.85));
+      filter: drop-shadow(0 0 6px rgba(215, 195, 141, 0.85));
     }
 
     &.is-错 {
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
       color: #ffd76e;
     }
     &.is-A {
-      color: #7fe3ff;
+      color: #d7c38d;
     }
     &.is-B {
       color: #9fb3c8;
@@ -468,12 +468,12 @@ onBeforeUnmount(() => {
     }
 
     &.is-完 {
-      background: rgba(127, 227, 255, 0.14);
-      border-color: rgba(127, 227, 255, 0.4);
-      color: #a8ecff;
+      background: rgba(215, 195, 141, 0.14);
+      border-color: rgba(215, 195, 141, 0.4);
+      color: #e5d4a3;
 
       &:hover {
-        background: rgba(127, 227, 255, 0.22);
+        background: rgba(215, 195, 141, 0.22);
       }
     }
   }

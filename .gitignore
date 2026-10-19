@@ -23,3 +23,14 @@ components.d.ts
 
 # 头脑风暴的 mockup 会话（本机临时产物, 公开仓库不要）
 .superpowers/
+
+# 本地恢复资料、个人配置与备份不发布
+.env
+.env.*
+!.env.example
+/备份/
+/恢复资料/
+/维修/
+/界面调整/
+/GitHub发布/
+/dist/white-tower-build.txt

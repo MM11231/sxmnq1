@@ -17,7 +17,7 @@
       >
         {{ 项 }}
       </button>
-      <span class="览__隙" />
+      <button class="览__钮" @click="换路线">{{ useDataStore().data.主角.路线 }}</button><span class="览__隙" />
       <button class="览__钮 is-层" @click="换层">末楼 {{ 末楼 }}</button>
     </nav>
   </div>
@@ -55,6 +55,7 @@ function 开始() {
  * 两档跳只能看见其中一条, 另一条永远验不到 —— 而预览正是唯一能看见它们的地方。
  * 逐楼走, 每条都到得了, 按钮上的数字就是当前位置。
  */
+function 换路线() { const data = useDataStore().data; data.主角.路线 = data.主角.路线 === '诊所线' ? '白塔向导路线' : '诊所线'; }
 function 换层() {
   末楼.value = 末楼.value >= 聊天条数 - 1 ? 0 : 末楼.value + 1;
 }
@@ -70,7 +71,7 @@ function 换层() {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: #0b0f14;
+  background: #171d1b;
 }
 
 /* 台子比窗口矮一条 —— 底下的预览条要占位。合窗.ts 量的是 window.innerHeight, 会把这
@@ -90,7 +91,7 @@ function 换层() {
   gap: 6px;
   padding: 6px 10px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: #141a22;
+  background: #2b3227;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
 }
 
@@ -111,7 +112,7 @@ function 换层() {
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 7px;
   background: rgba(255, 255, 255, 0.04);
-  color: #8e99a6;
+  color: #a6ab91;
   font-family: inherit;
   font-size: 12px;
   cursor: pointer;
@@ -123,7 +124,7 @@ function 换层() {
   }
 
   &.is-层 {
-    color: #6f7a87;
+    color: #96967e;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -139,7 +140,7 @@ function 换层() {
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 9px;
   background: #1b222c;
-  color: #cfd7e0;
+  color: #c8c7af;
   font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
   font-size: 13px;
   line-height: 1.5;

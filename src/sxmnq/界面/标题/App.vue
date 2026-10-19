@@ -107,7 +107,7 @@ function 点(事: MouseEvent) {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background: linear-gradient(168deg, #131922 0%, #10151c 46%, #0a0e13 100%);
+  background: linear-gradient(168deg, #131922 0%, #252b23 46%, #0a0e13 100%);
 
   &__晕 {
     position: absolute;
@@ -115,7 +115,7 @@ function 点(事: MouseEvent) {
     pointer-events: none;
 
     &.is-青 {
-      background: radial-gradient(58% 42% at 22% 12%, rgba(127, 227, 255, 0.09), transparent 70%);
+      background: radial-gradient(58% 42% at 22% 12%, rgba(215, 195, 141, 0.09), transparent 70%);
     }
 
     &.is-紫 {
@@ -144,8 +144,8 @@ function 点(事: MouseEvent) {
   &__点 {
     position: absolute;
     border-radius: 50%;
-    background: #a8ecff;
-    box-shadow: 0 0 6px rgba(127, 227, 255, 0.55);
+    background: #e5d4a3;
+    box-shadow: 0 0 6px rgba(215, 195, 141, 0.55);
     animation-name: th-drift;
     animation-timing-function: ease-in-out;
     animation-iteration-count: infinite;
@@ -166,7 +166,7 @@ function 点(事: MouseEvent) {
       background: conic-gradient(
         from 0deg,
         transparent 0deg,
-        rgba(127, 227, 255, 0.26) 46deg,
+        rgba(215, 195, 141, 0.26) 46deg,
         transparent 132deg,
         transparent 360deg
       );
@@ -202,8 +202,8 @@ function 点(事: MouseEvent) {
     background: linear-gradient(
       to bottom,
       rgba(168, 236, 255, 0.2) 0%,
-      rgba(127, 227, 255, 0.07) 42%,
-      rgba(127, 227, 255, 0) 82%
+      rgba(215, 195, 141, 0.07) 42%,
+      rgba(215, 195, 141, 0) 82%
     );
     clip-path: polygon(
       50% 0%,
@@ -263,7 +263,7 @@ function 点(事: MouseEvent) {
     animation: th-rise 0.9s 0.15s ease-out both;
 
     span {
-      color: #6f7a87;
+      color: #96967e;
       font-size: 12px;
       letter-spacing: 0.42em;
       // 字距会在末尾多顶出一格, 往左补偿回来才是视觉居中。
@@ -273,23 +273,23 @@ function 点(事: MouseEvent) {
     i {
       width: 34px;
       height: 1px;
-      background: linear-gradient(to right, transparent, rgba(127, 227, 255, 0.34));
+      background: linear-gradient(to right, transparent, rgba(215, 195, 141, 0.34));
       &:last-child {
-        background: linear-gradient(to left, transparent, rgba(127, 227, 255, 0.34));
+        background: linear-gradient(to left, transparent, rgba(215, 195, 141, 0.34));
       }
     }
   }
 
   &__题 {
     margin: 0;
-    color: #eef3f8;
+    color: #e5d8b8;
     font-size: 32px;
     font-weight: 600;
     line-height: 1.25;
     letter-spacing: 0.06em;
     text-indent: 0.06em;
     white-space: nowrap;
-    text-shadow: 0 0 22px rgba(127, 227, 255, 0.28), 0 0 60px rgba(127, 227, 255, 0.12);
+    text-shadow: 0 0 22px rgba(215, 195, 141, 0.28), 0 0 60px rgba(215, 195, 141, 0.12);
     opacity: 0;
     // 入场时字距从松到紧收一次, 两段动画并行。
     animation: th-rise 1s 0.32s ease-out both, th-tighten 1.5s 0.32s cubic-bezier(0.22, 0.9, 0.24, 1) both;
@@ -299,7 +299,7 @@ function 点(事: MouseEvent) {
     width: 190px;
     height: 1px;
     margin: 30px 0 34px;
-    background: linear-gradient(to right, transparent, rgba(127, 227, 255, 0.42), transparent);
+    background: linear-gradient(to right, transparent, rgba(215, 195, 141, 0.42), transparent);
     opacity: 0;
     animation: th-rise 0.9s 0.62s ease-out both;
   }
@@ -311,8 +311,8 @@ function 点(事: MouseEvent) {
     min-height: 46px;
     padding: 0;
     border-radius: 10px;
-    border: 1px solid rgba(127, 227, 255, 0.34);
-    background: rgba(127, 227, 255, 0.09);
+    border: 1px solid rgba(215, 195, 141, 0.34);
+    background: rgba(215, 195, 141, 0.09);
     color: #cdf3ff;
     font-family: inherit;
     font-size: 15px;
@@ -343,9 +343,9 @@ function 点(事: MouseEvent) {
     }
 
     &:hover {
-      background: rgba(127, 227, 255, 0.16);
-      border-color: rgba(127, 227, 255, 0.52);
-      box-shadow: 0 0 24px rgba(127, 227, 255, 0.16);
+      background: rgba(215, 195, 141, 0.16);
+      border-color: rgba(215, 195, 141, 0.52);
+      box-shadow: 0 0 24px rgba(215, 195, 141, 0.16);
       &::after {
         left: 118%;
       }
