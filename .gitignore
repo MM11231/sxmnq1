@@ -1,8 +1,11 @@
 node_modules
 
+<<<<<<< HEAD
 # Claude Code 的本地权限/设置, 只对这台机器有意义, 不该进仓库
 .claude/settings.local.json
 
+=======
+>>>>>>> 9aadd35b2a8c888b756179046743cbf920a1a0c8
 .DS_Store
 Thumbs.db
 
@@ -14,6 +17,7 @@ pnpm-debug.log*
 
 auto-imports.d.ts
 components.d.ts
+<<<<<<< HEAD
 
 # 原始卡备份与中间产物（不入公开仓库）
 归档/
@@ -34,3 +38,5 @@ components.d.ts
 /界面调整/
 /GitHub发布/
 /dist/white-tower-build.txt
+=======
+>>>>>>> 9aadd35b2a8c888b756179046743cbf920a1a0c8
