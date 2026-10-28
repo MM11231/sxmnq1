@@ -188,6 +188,7 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
     .includes('@obfuscate');
   const script_filepath = path.parse(entry.script);
 
+<<<<<<< HEAD
   // src/预览/ 下的入口是脱机预览用的, 要拿去静态托管 —— 那儿没有酒馆助手给它挂
   // Vue/$/_ 那些全局, 所以这个入口不能走下面的 externals, 依赖得真的打进包里。
   // 其余入口(卡里跑的)照旧。见 src/预览/index.ts 的说明。
@@ -196,6 +197,8 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
     .replace(/\\/g, '/')
     .startsWith('src/预览/');
 
+=======
+>>>>>>> 86263ac33d811f0fc3d2e7860c0b19039a9f4515
   return (_env, argv) => ({
     experiments: {
       outputModule: true,
@@ -242,12 +245,15 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
         {
           oneOf: [
             {
+<<<<<<< HEAD
               test: /\.svg$/,
               type: 'asset/inline',
               resourceQuery: { not: [/raw/, /url/] },
               exclude: /node_modules/,
             },
             {
+=======
+>>>>>>> 86263ac33d811f0fc3d2e7860c0b19039a9f4515
               test: /\.tsx?$/,
               loader: 'ts-loader',
               options: {
@@ -534,10 +540,13 @@ function parse_configuration(entry: Entry): (_env: any, argv: any) => webpack.Co
       },
     },
     externals: ({ context, request }, callback) => {
+<<<<<<< HEAD
       if (是预览) {
         return callback();
       }
 
+=======
+>>>>>>> 86263ac33d811f0fc3d2e7860c0b19039a9f4515
       if (!context || !request) {
         return callback();
       }
